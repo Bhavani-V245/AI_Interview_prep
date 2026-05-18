@@ -47,8 +47,51 @@ const Dashboard = () => {
 
   useEffect(() => {
     axios.get('/api/interview/history')
-      .then(res => setHistoryData(res.data))
-      .catch(() => setHistoryData({ sessions: [], stats: { total_sessions: 0, avg_score: 0, total_time_hours: 0, total_questions: 0 } }))
+      .then(res => {
+        setHistoryData(res.data);
+        const fetchedSessions = res.data.sessions || [];
+        if (fetchedSessions.length === 0) {
+          setNotifications([
+            { id: 1, title: 'Welcome to MockMate AI! 🧠', desc: 'Let\'s get started: Generate custom technical or behavioral interview questions on the AI Interview tab!', read: false, time: 'Just now' },
+            { id: 2, title: 'Check your Resume ATS score 📄', desc: 'Upload your resume PDF to the Resume Analyzer to view compatibility and skills matching!', read: false, time: 'Just now' },
+            { id: 3, title: 'Practice Coding Speed 💻', desc: 'Open the Coding Round tab to practice algorithm challenges inside a Monaco IDE sandbox!', read: false, time: 'Just now' }
+          ]);
+        } else {
+          // Map last 3 real activities into notifications
+          const activeNotifs = fetchedSessions.slice(-3).reverse().map((sess, idx) => {
+            let title = 'Activity Completed';
+            let desc = `You completed a session on ${sess.date}.`;
+            if (sess.type === 'interview' || sess.type === 'voice') {
+              title = sess.type === 'voice' ? '🎙️ Voice Interview Finished' : '💬 AI Mock Interview Done';
+              desc = `Role: ${sess.role || 'Developer'} (${sess.topic || 'General'}). Score: ${sess.score}/10!`;
+            } else if (sess.type === 'coding') {
+              title = '💻 Code Evaluation Complete';
+              desc = `Successfully processed: "${sess.role || 'Algorithms'}". Gemini grading: ${sess.score}/10!`;
+            } else if (sess.type === 'quiz') {
+              title = '🏆 Aptitude Quiz Completed';
+              desc = `Evaluated: ${sess.topic || 'General CS'} Quiz. Final test accuracy: ${sess.score}%!`;
+            } else if (sess.type === 'resume') {
+              title = '📄 Resume Analysis Executed';
+              desc = `Completed parsing metrics for your resume. ATS compatibility score: ${sess.score}%!`;
+            }
+            
+            // Format time display
+            const timeVal = sess.date ? sess.date.split(' ')[1] : 'Today';
+            
+            return {
+              id: idx + 1,
+              title,
+              desc,
+              read: false,
+              time: timeVal
+            };
+          });
+          setNotifications(activeNotifs);
+        }
+      })
+      .catch(() => {
+        setHistoryData({ sessions: [], stats: { total_sessions: 0, avg_score: 0, total_time_hours: 0, total_questions: 0 } });
+      })
       .finally(() => setLoading(false));
   }, []);
 
