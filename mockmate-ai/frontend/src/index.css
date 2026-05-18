@@ -4,81 +4,110 @@
 
 @layer base {
   body {
-    @apply bg-[#030014] text-slate-200 antialiased selection:bg-purple-500/30;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply bg-[#060410] text-slate-100 antialiased selection:bg-purple-500/30;
+    font-family: 'Outfit', sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
   }
 }
 
 @layer components {
   /* Premium Glassmorphism */
   .glass {
-    @apply bg-[#0f0b29]/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)];
+    @apply bg-[#0b0821]/45 backdrop-blur-3xl border border-purple-500/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)];
   }
 
   .neon-glass {
-    @apply bg-[#0f0b29]/60 backdrop-blur-3xl border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-500 hover:border-purple-400/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:bg-[#1a143a]/80;
+    @apply bg-[#0b0821]/65 backdrop-blur-3xl border border-purple-500/20 shadow-[0_0_25px_rgba(168,85,247,0.08)] transition-all duration-500 hover:border-purple-400/50 hover:shadow-[0_0_35px_rgba(168,85,247,0.25)] hover:bg-[#120e30]/80;
   }
 
   .neon-glass-active {
-    @apply bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-3xl border border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.4)] text-white;
+    @apply bg-gradient-to-r from-purple-600/30 to-blue-600/30 backdrop-blur-3xl border border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.35)] text-white;
+  }
+
+  /* Cyberpunk Cards */
+  .cyber-card {
+    position: relative;
+    background: rgba(11, 8, 33, 0.65);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cyber-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .cyber-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(6, 182, 212, 0.4);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 25px rgba(6, 182, 212, 0.15);
+  }
+
+  .cyber-card:hover::after {
+    opacity: 1;
+  }
+
+  /* Digital OS Grid Overlay */
+  .digital-grid {
+    position: fixed;
+    inset: 0;
+    z-index: -5;
+    background-image: 
+      radial-gradient(rgba(139, 92, 246, 0.08) 1px, transparent 1px),
+      linear-gradient(rgba(139, 92, 246, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139, 92, 246, 0.015) 1px, transparent 1px);
+    background-size: 40px 40px, 80px 80px, 80px 80px;
+    background-position: center center;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+  /* Floating Aurora Blobs */
+  .aurora {
+    @apply fixed inset-0 -z-10 pointer-events-none;
+    background: 
+      radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
+      radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.06) 0%, transparent 50%);
+    filter: blur(90px);
+    animation: drift 15s ease-in-out infinite alternate;
   }
 
   /* Vibrant Text */
   .vibrant-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-blue-400 drop-shadow-[0_0_10px_rgba(192,132,252,0.5)];
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_12px_rgba(168,85,247,0.4)];
   }
 
-  /* SaaS Buttons */
+  /* Premium Buttons */
   .btn-primary {
-    @apply px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] border border-white/10;
+    @apply px-8 py-3.5 bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-black rounded-2xl transition-all duration-300 hover:scale-[1.03] active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_35px_rgba(6,182,212,0.5)] border border-white/10;
   }
 
   .btn-secondary {
-    @apply px-8 py-3 bg-white/5 text-purple-300 font-black rounded-2xl border border-purple-500/30 transition-all duration-300 hover:bg-purple-500/10 hover:border-purple-400 hover:text-white backdrop-blur-xl hover:shadow-[0_0_20px_rgba(168,85,247,0.2)];
+    @apply px-8 py-3.5 bg-[#0f0b29]/50 text-cyan-300 font-black rounded-2xl border border-cyan-500/20 transition-all duration-300 hover:bg-cyan-500/10 hover:border-cyan-400 hover:text-white backdrop-blur-xl hover:shadow-[0_0_20px_rgba(6,182,212,0.15)];
   }
 
   .btn-vibrant {
-    @apply px-6 py-2.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(217,70,239,0.5)] border border-white/20;
-  }
-
-  /* Animated Borders & Glows */
-  .animated-border {
-    position: relative;
-  }
-  .animated-border::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: inherit;
-    background: linear-gradient(45deg, #a855f7, #ec4899, #3b82f6, #a855f7);
-    z-index: -1;
-    filter: blur(10px);
-    opacity: 0.5;
-    animation: rotate 4s linear infinite;
-  }
-
-  /* Vibrant Backgrounds */
-  .aurora {
-    @apply fixed inset-0 -z-10 pointer-events-none;
-    background: 
-      radial-gradient(circle at 15% 50%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
-    filter: blur(80px);
+    @apply px-6 py-3 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-bold rounded-xl transition-all duration-300 hover:scale-[1.03] active:scale-95 shadow-[0_0_15px_rgba(168,85,247,0.35)] border border-white/10;
   }
 }
 
 /* Animations */
-@keyframes rotate {
-  0% { filter: hue-rotate(0deg) blur(10px); }
-  100% { filter: hue-rotate(360deg) blur(10px); }
+@keyframes drift {
+  0% { transform: scale(1) translate(0px, 0px); }
+  50% { transform: scale(1.1) translate(20px, -20px); }
+  100% { transform: scale(1) translate(-10px, 10px); }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.float {
-  animation: float 6s ease-in-out infinite;
+.float-slow {
+  animation: drift 10s ease-in-out infinite alternate;
 }

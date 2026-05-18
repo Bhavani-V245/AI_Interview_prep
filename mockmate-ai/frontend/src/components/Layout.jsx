@@ -18,8 +18,9 @@ const Layout = ({ children }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#030014] text-slate-200 relative overflow-hidden">
+    <div className="min-h-screen bg-[#060410] text-slate-100 relative overflow-hidden">
       <div className="aurora"></div>
+      <div className="digital-grid"></div>
       {showSidebar && <Sidebar />}
       <main className={`${showSidebar ? (isCollapsed ? 'pl-28' : 'pl-[18rem]') : ''} min-h-screen transition-all duration-300 relative z-10`}>
         {children}
