@@ -22,7 +22,9 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('/api/interview/history')
+    const userStr = localStorage.getItem('user');
+    const userEmail = userStr ? JSON.parse(userStr).email : null;
+    axios.get(`/api/interview/history?email=${encodeURIComponent(userEmail || '')}`)
       .then(res => setHistoryData(res.data))
       .catch(() => setHistoryData({ sessions: [], stats: { total_sessions: 0, avg_score: 0, total_time_hours: 0, total_questions: 0 } }))
       .finally(() => setLoading(false));
@@ -64,7 +66,57 @@ const Analytics = () => {
     }],
   };
 
-  const readiness = Math.min(100, Math.round(stats.avg_score * 10));
+  // Advanced AI Placement Readiness Score Engine
+  const calculateReadiness = () => {
+    if (sessions.length === 0) return { score: 0, completed: 0, advice: "Begin taking Technical Interviews, Aptitude Quizzes, Monaco Coding Rounds, and Group Discussions to calculate your job readiness.", domains: { interview: 0, coding: 0, quiz: 0, gd: 0 } };
+    
+    // 1. Domain Coverage (Max 60 points) - 15 points per unique placement domain practiced
+    const domains = {
+      interview: sessions.filter(s => s.type === 'interview' || s.type === 'voice').length,
+      coding: sessions.filter(s => s.type === 'coding').length,
+      quiz: sessions.filter(s => s.type === 'quiz').length,
+      gd: sessions.filter(s => s.type === 'group_discussion').length
+    };
+    
+    let domainPoints = 0;
+    let completedCount = 0;
+    if (domains.interview > 0) { domainPoints += 15; completedCount++; }
+    if (domains.coding > 0) { domainPoints += 15; completedCount++; }
+    if (domains.quiz > 0) { domainPoints += 15; completedCount++; }
+    if (domains.gd > 0) { domainPoints += 15; completedCount++; }
+    
+    // 2. Volume & Consistency (Max 20 points) - 2 points per completed round to prove stability
+    const consistencyPoints = Math.min(20, sessions.length * 2);
+    
+    // 3. Scorecard contribution (Max 20 points) - Based on scorecard average grade (out of 10)
+    const avgScore = stats.avg_score || 0;
+    const scorePoints = Math.min(20, (avgScore / 10) * 20);
+    
+    const finalScore = Math.min(100, Math.round(domainPoints + consistencyPoints + scorePoints));
+    
+    let advice = "";
+    if (completedCount < 2) {
+      advice = "You have only practiced in one domain. A true placement profile requires active participation in Technical Interviews, Monaco IDE coding rounds, and Aptitude quizzes.";
+    } else if (domains.coding === 0) {
+      advice = "Critical Gap: You have not completed any Coding Sandbox sessions. Most campus selection rounds feature an automatic elimination coding round.";
+    } else if (domains.gd === 0) {
+      advice = "Communication Gap: You haven't practiced AI simulated Group Discussions yet. Prepare with Sarah, Aarav, and David to score higher on presentation skills.";
+    } else if (finalScore < 70) {
+      advice = "Keep practicing across multiple tracks. Try to raise your average scorecard grade above 8/10 to unlock elite job readiness.";
+    } else {
+      advice = "Excellent profile! You are consistently covering all placement domains with outstanding scores. You are highly ready for competitive campus hiring!";
+    }
+    
+    return {
+      score: finalScore,
+      completed: completedCount,
+      domains,
+      advice
+    };
+  };
+
+  const readinessData = calculateReadiness();
+  const readiness = readinessData.score;
 
   const chartOptions = {
     responsive: true,
@@ -119,7 +171,33 @@ const Analytics = () => {
             <div className="flex flex-col md:flex-row items-center gap-10">
               <div className="flex-1">
                 <h2 className="text-2xl font-bold mb-4">AI Prediction: Job Readiness</h2>
-                <p className="text-gray-400 leading-relaxed">Based on your {stats.total_sessions} sessions with an average score of <span className="text-white font-bold">{stats.avg_score}/10</span>, you are at <span className="text-white font-bold">{readiness}%</span> readiness. {readiness >= 80 ? 'You are ready for senior-level interviews!' : readiness >= 50 ? 'Keep practicing to improve your consistency.' : 'Focus on building fundamentals through more practice sessions.'}</p>
+                <div className="text-gray-400 leading-relaxed">
+                  <p className="mb-4 text-slate-300">
+                    Based on your <span className="text-white font-extrabold">{stats.total_sessions} sessions</span> with an average scorecard grade of <span className="text-white font-extrabold">{stats.avg_score}/10</span>, your multi-domain readiness is <span className="text-purple-400 font-extrabold">{readiness}%</span>.
+                  </p>
+                  <p className="text-xs font-semibold text-zinc-300 bg-white/5 p-4 rounded-2xl border border-white/5 mb-6">
+                    💡 <span className="text-purple-300">AI Assessment:</span> {readinessData.advice}
+                  </p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+                      <span>{readinessData.domains.interview > 0 ? "✅" : "❌"}</span>
+                      <span>Technical Interviews ({readinessData.domains.interview} sessions)</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+                      <span>{readinessData.domains.coding > 0 ? "✅" : "❌"}</span>
+                      <span>Monaco IDE Coding ({readinessData.domains.coding} sessions)</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+                      <span>{readinessData.domains.quiz > 0 ? "✅" : "❌"}</span>
+                      <span>Analytical Aptitude ({readinessData.domains.quiz} sessions)</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
+                      <span>{readinessData.domains.gd > 0 ? "✅" : "❌"}</span>
+                      <span>Group Discussions ({readinessData.domains.gd} sessions)</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="w-48 h-48">
                 <Doughnut 

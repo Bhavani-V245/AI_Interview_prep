@@ -17,6 +17,7 @@ import ResumeAnalyzer from './pages/ResumeAnalyzer';
 import Analytics from './pages/Analytics';
 import Quiz from './pages/Quiz';
 import TypingTest from './pages/TypingTest';
+import GroupDiscussion from './pages/GroupDiscussion';
 
 const ProtectedRoute = ({ children }) => {
   const user = localStorage.getItem('user');
@@ -40,6 +41,7 @@ function App() {
           <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
           <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
           <Route path="/typing" element={<ProtectedRoute><TypingTest /></ProtectedRoute>} />
+          <Route path="/gd" element={<ProtectedRoute><GroupDiscussion /></ProtectedRoute>} />
         </Routes>
       </Layout>
       <ToastContainer position="bottom-right" theme="dark" />

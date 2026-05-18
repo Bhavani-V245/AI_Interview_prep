@@ -94,6 +94,7 @@ const PROBLEMS = [
 ];
 
 const CodingRound = () => {
+  const [problemList, setProblemList] = useState(PROBLEMS);
   const [problemIdx, setProblemIdx] = useState(0);
   const [language, setLanguage] = useState('javascript');
   const [timeLeft, setTimeLeft] = useState(1800);
@@ -101,8 +102,10 @@ const CodingRound = () => {
   const [consoleOutput, setConsoleOutput] = useState('> Ready. Write your solution and click Run Code.');
   const [submitting, setSubmitting] = useState(false);
   const [evaluation, setEvaluation] = useState(null);
+  const [generatingProblem, setGeneratingProblem] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState('Medium');
 
-  const problem = PROBLEMS[problemIdx];
+  const problem = problemList[problemIdx] || PROBLEMS[0];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -112,10 +115,42 @@ const CodingRound = () => {
   }, []);
 
   useEffect(() => {
-    setCode(problem.starterCode[language] || problem.starterCode.javascript);
+    if (problem && problem.starterCode) {
+      setCode(problem.starterCode[language] || problem.starterCode.javascript);
+    }
     setConsoleOutput('> Ready. Write your solution and click Run Code.');
     setEvaluation(null);
-  }, [problemIdx, language]);
+  }, [problemIdx, language, problemList]);
+
+  const generateCustomProblem = async () => {
+    setGeneratingProblem(true);
+    toast.info("Generating a completely unique AI coding challenge...");
+    try {
+      const res = await axios.post('/api/interview/generate-coding-problem', {
+        difficulty: selectedDifficulty
+      });
+      if (res.data && res.data.title) {
+        const newProblem = res.data;
+        // Fix starterCode fallback if missing
+        if (!newProblem.starterCode) {
+          newProblem.starterCode = {
+            javascript: `// ${newProblem.title}\nfunction solution() {\n  // Write code here\n}`,
+            python: `# ${newProblem.title}\ndef solution():\n    pass`
+          };
+        }
+        setProblemList([...problemList, newProblem]);
+        setProblemIdx(problemList.length);
+        toast.success(`Generated: "${newProblem.title}"!`);
+      } else {
+        toast.error("Failed to generate problem. Try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error generating coding challenge.");
+    } finally {
+      setGeneratingProblem(false);
+    }
+  };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
@@ -124,14 +159,34 @@ const CodingRound = () => {
       setConsoleOutput(`> [Info] Client-side execution is only available for JavaScript.\n> Use Submit to get AI evaluation for ${language} code.`);
       return;
     }
+    setEvaluation(null); // Instantly flip back to console output view!
+    const logs = [];
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+
+    console.log = (...args) => logs.push(args.map(String).join(' '));
+    console.error = (...args) => logs.push(`[Error] ` + args.map(String).join(' '));
+    console.warn = (...args) => logs.push(`[Warning] ` + args.map(String).join(' '));
+
     try {
-      const logs = [];
-      const fakeConsole = { log: (...args) => logs.push(args.map(String).join(' ')) };
-      const fn = new Function('console', code);
-      fn(fakeConsole);
-      setConsoleOutput(logs.length > 0 ? logs.join('\n') : '> Code executed successfully (no console.log output).');
+      // Execute user code
+      const fn = new Function(code);
+      fn();
+      
+      // Restore standard console immediately
+      console.log = originalLog;
+      console.error = originalError;
+      console.warn = originalWarn;
+
+      setConsoleOutput(logs.length > 0 ? logs.join('\n') : '> Code executed successfully.\n> Tip: Use console.log() to print the results of your function!');
       toast.success('Code executed!');
     } catch (err) {
+      // Restore standard console immediately
+      console.log = originalLog;
+      console.error = originalError;
+      console.warn = originalWarn;
+
       setConsoleOutput(`> Runtime Error:\n${err.message}`);
       toast.error('Runtime error in your code.');
     }
@@ -152,7 +207,10 @@ const CodingRound = () => {
       toast.success(`Score: ${res.data.overall_score}/10`);
 
       // Save session
+      const userStr = localStorage.getItem('user');
+      const userEmail = userStr ? JSON.parse(userStr).email : null;
       await axios.post('/api/interview/save-session', {
+        email: userEmail,
         type: 'coding',
         role: 'Developer',
         topic: problem.title,
@@ -184,10 +242,41 @@ const CodingRound = () => {
         <div className="p-5 border-b border-white/10 flex items-center justify-between bg-black/30">
           <div className="flex items-center gap-2">
             <Code2 className="text-indigo-400" size={18} />
-            <h1 className="font-bold uppercase tracking-wider text-[10px] text-gray-500">Problem {problemIdx + 1} / {PROBLEMS.length}</h1>
+            <h1 className="font-bold uppercase tracking-wider text-[10px] text-gray-500">Problem {problemIdx + 1} / {problemList.length}</h1>
           </div>
-          <div className={`px-3 py-1 text-[10px] font-bold rounded-full border uppercase ${diffColors[problem.difficulty]}`}>
-            {problem.difficulty}
+          <div className={`px-3 py-1 text-[10px] font-bold rounded-full border uppercase ${diffColors[problem.difficulty || 'Medium']}`}>
+            {problem.difficulty || 'Medium'}
+          </div>
+        </div>
+
+        {/* AI Generator Box */}
+        <div className="p-5 border-b border-white/5 bg-indigo-500/5 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">AI Coding Lab</span>
+            <span className="text-[9px] text-zinc-500 font-medium">Bypass repetitive tasks</span>
+          </div>
+          <div className="flex gap-2">
+            <select
+              value={selectedDifficulty}
+              onChange={e => setSelectedDifficulty(e.target.value)}
+              className="bg-white/5 border border-white/10 text-xs rounded-xl px-3 py-2 flex-1 focus:outline-none text-gray-300 font-bold"
+            >
+              <option value="Easy">Easy Level</option>
+              <option value="Medium">Medium Level</option>
+              <option value="Hard">Hard Level</option>
+            </select>
+            <button
+              onClick={generateCustomProblem}
+              disabled={generatingProblem}
+              className="btn-primary py-2 px-4 rounded-xl text-xs font-bold flex items-center gap-2 disabled:opacity-50"
+            >
+              {generatingProblem ? (
+                <Loader2 size={12} className="animate-spin text-white" />
+              ) : (
+                <Zap size={12} fill="white" />
+              )}
+              Generate
+            </button>
           </div>
         </div>
 
@@ -199,21 +288,23 @@ const CodingRound = () => {
 
           <div className="space-y-4">
             <h3 className="font-bold flex items-center gap-2 text-sm"><CheckCircle2 size={14} className="text-indigo-400" /> Examples</h3>
-            {problem.examples.map((ex, i) => (
+            {problem.examples && problem.examples.map((ex, i) => (
               <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/10 text-xs space-y-1">
                 <div className="flex gap-2"><span className="text-indigo-400 font-bold">Input:</span> <span className="text-gray-300 font-mono">{ex.input}</span></div>
                 <div className="flex gap-2"><span className="text-emerald-400 font-bold">Output:</span> <span className="text-gray-300 font-mono">{ex.output}</span></div>
-                <p className="text-[10px] text-gray-500 italic mt-1">{ex.explanation}</p>
+                {ex.explanation && <p className="text-[10px] text-gray-500 italic mt-1">{ex.explanation}</p>}
               </div>
             ))}
           </div>
 
-          <div className="p-4 glass rounded-2xl border border-white/5">
-            <h3 className="font-bold mb-2 text-indigo-400 text-xs">Constraints:</h3>
-            <ul className="text-[11px] text-gray-500 list-disc list-inside space-y-1">
-              {problem.constraints.map((c, i) => <li key={i}>{c}</li>)}
-            </ul>
-          </div>
+          {problem.constraints && (
+            <div className="p-4 glass rounded-2xl border border-white/5">
+              <h3 className="font-bold mb-2 text-indigo-400 text-xs">Constraints:</h3>
+              <ul className="text-[11px] text-gray-500 list-disc list-inside space-y-1">
+                {problem.constraints.map((c, i) => <li key={i}>{c}</li>)}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Problem navigation */}
@@ -225,20 +316,20 @@ const CodingRound = () => {
           >
             <ChevronLeft size={16} /> Prev
           </button>
-          <div className="flex gap-1">
-            {PROBLEMS.map((_, i) => (
+          <div className="flex gap-1 overflow-x-auto max-w-[150px] scrollbar-none">
+            {problemList.map((_, i) => (
               <button 
                 key={i} 
                 onClick={() => setProblemIdx(i)} 
-                className={`w-7 h-7 rounded-lg text-[10px] font-bold transition-all ${i === problemIdx ? 'bg-indigo-600 text-white' : 'bg-white/5 text-zinc-600 hover:bg-white/10'}`}
+                className={`w-7 h-7 shrink-0 rounded-lg text-[10px] font-bold transition-all ${i === problemIdx ? 'bg-indigo-600 text-white' : 'bg-white/5 text-zinc-600 hover:bg-white/10'}`}
               >
                 {i + 1}
               </button>
             ))}
           </div>
           <button 
-            onClick={() => setProblemIdx(Math.min(PROBLEMS.length - 1, problemIdx + 1))} 
-            disabled={problemIdx === PROBLEMS.length - 1}
+            onClick={() => setProblemIdx(Math.min(problemList.length - 1, problemIdx + 1))} 
+            disabled={problemIdx === problemList.length - 1}
             className="flex items-center gap-1 text-xs font-bold text-zinc-500 hover:text-white disabled:opacity-30 transition-colors"
           >
             Next <ChevronRight size={16} />

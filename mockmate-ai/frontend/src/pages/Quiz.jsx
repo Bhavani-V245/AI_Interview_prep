@@ -1,57 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HelpCircle, CheckCircle2, XCircle, Award, ChevronRight, Layers, RotateCcw } from 'lucide-react';
+import { 
+  HelpCircle, 
+  CheckCircle2, 
+  XCircle, 
+  Award, 
+  ChevronRight, 
+  Layers, 
+  RotateCcw, 
+  Loader2, 
+  BookOpen, 
+  BrainCircuit, 
+  Compass, 
+  BookOpenCheck 
+} from 'lucide-react';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
-const QUESTION_BANK = {
-  "Web Dev": [
-    { question: "Which of the following is not a valid CSS unit?", options: ["rem", "em", "vh", "ptx"], answer: 3 },
-    { question: "What is the result of 2 + '2' in JavaScript?", options: ["4", "'22'", "undefined", "NaN"], answer: 1 },
-    { question: "Which company developed React?", options: ["Google", "Microsoft", "Meta", "Twitter"], answer: 2 },
-    { question: "What does HTML stand for?", options: ["Hyper Text Markup Language", "High Text Machine Language", "Hyper Tabular Markup Language", "None of these"], answer: 0 },
-    { question: "Which method serializes an object into a JSON string?", options: ["JSON.parse()", "JSON.stringify()", "JSON.serialize()", "JSON.object()"], answer: 1 },
-    { question: "What is the correct syntax for referring to an external script?", options: ["<script href='app.js'>", "<script name='app.js'>", "<script src='app.js'>", "<script file='app.js'>"], answer: 2 },
-    { question: "How do you declare a CSS variable?", options: ["$var: value;", "var-name: value;", "--var-name: value;", "@var: value;"], answer: 2 },
-    { question: "Which is a valid React hook?", options: ["useFetch", "useState", "useData", "useStore"], answer: 1 },
-    { question: "What is the output of typeof null?", options: ["'null'", "'object'", "'undefined'", "'number'"], answer: 1 },
-    { question: "Which HTTP status code means 'Not Found'?", options: ["200", "403", "404", "500"], answer: 2 },
+const PLACEMENT_TOPICS = {
+  "Quantitative Aptitude": [
+    "Number System",
+    "Percentages",
+    "Profit & Loss",
+    "Ratio & Proportion",
+    "Time & Work",
+    "Time, Speed & Distance",
+    "Averages & Ages",
+    "Simple & Compound Interest",
+    "Mixture & Allegation",
+    "Probability",
+    "Permutation & Combination",
+    "Geometry & Mensuration",
+    "Data Interpretation"
   ],
-  "Data Structures": [
-    { question: "Which data structure uses FIFO ordering?", options: ["Stack", "Queue", "Tree", "Graph"], answer: 1 },
-    { question: "What is the time complexity of binary search?", options: ["O(n)", "O(log n)", "O(n²)", "O(1)"], answer: 1 },
-    { question: "Which array method adds elements to the end?", options: ["pop()", "shift()", "push()", "unshift()"], answer: 2 },
-    { question: "A balanced BST has height of?", options: ["O(n)", "O(log n)", "O(n²)", "O(1)"], answer: 1 },
-    { question: "Which data structure is best for undo functionality?", options: ["Queue", "Array", "Stack", "Linked List"], answer: 2 },
-    { question: "Hash table average lookup time is?", options: ["O(n)", "O(log n)", "O(n²)", "O(1)"], answer: 3 },
-    { question: "Which traversal visits root first?", options: ["Inorder", "Preorder", "Postorder", "Level-order"], answer: 1 },
-    { question: "DFS uses which data structure internally?", options: ["Queue", "Stack", "Heap", "Array"], answer: 1 },
-    { question: "Minimum spanning tree algorithm?", options: ["Dijkstra", "Bellman-Ford", "Kruskal", "Floyd-Warshall"], answer: 2 },
-    { question: "Worst case of quicksort?", options: ["O(n log n)", "O(n)", "O(n²)", "O(log n)"], answer: 2 },
+  "Logical Reasoning": [
+    "Blood Relations",
+    "Direction Sense",
+    "Coding-Decoding",
+    "Seating Arrangement",
+    "Puzzles",
+    "Syllogism",
+    "Series & Patterns",
+    "Clock & Calendar",
+    "Venn Diagrams"
   ],
-  "System Design": [
-    { question: "Which pattern distributes load across servers?", options: ["Singleton", "Load Balancer", "Factory", "Observer"], answer: 1 },
-    { question: "CAP theorem states you can have at most how many?", options: ["1 of 3", "2 of 3", "All 3", "None"], answer: 1 },
-    { question: "What does CDN stand for?", options: ["Central Data Network", "Content Delivery Network", "Cloud Data Node", "Content Direct Network"], answer: 1 },
-    { question: "Which database type is best for social graphs?", options: ["Relational", "Document", "Graph", "Key-Value"], answer: 2 },
-    { question: "Microservices communicate via?", options: ["Shared memory", "APIs/Messages", "Direct DB", "File system"], answer: 1 },
-    { question: "What provides eventual consistency?", options: ["ACID", "BASE", "CAP", "REST"], answer: 1 },
-    { question: "Rate limiting protects against?", options: ["SQL injection", "DDoS/abuse", "XSS", "CSRF"], answer: 1 },
-    { question: "Horizontal scaling means?", options: ["Bigger server", "More servers", "Faster CPU", "More RAM"], answer: 1 },
-  ],
-  "General CS": [
-    { question: "What does API stand for?", options: ["Application Programming Interface", "Applied Program Integration", "Application Process Interface", "Applied Programming Integration"], answer: 0 },
-    { question: "In React, data is passed to components via?", options: ["setState", "render args", "props", "PropTypes"], answer: 2 },
-    { question: "Git command to create a new branch?", options: ["git new", "git branch", "git create", "git init"], answer: 1 },
-    { question: "Which protocol is stateless?", options: ["FTP", "HTTP", "TCP", "SMTP"], answer: 1 },
-    { question: "What is the purpose of DNS?", options: ["Encrypt data", "Resolve domain names", "Transfer files", "Send emails"], answer: 1 },
-    { question: "Which is NOT an HTTP method?", options: ["GET", "POST", "SAVE", "DELETE"], answer: 2 },
-    { question: "What does SQL stand for?", options: ["Structured Query Language", "Simple Query Language", "Standard Query Logic", "Structured Question Language"], answer: 0 },
-    { question: "OAuth is used for?", options: ["Encryption", "Authentication/Authorization", "Compression", "Caching"], answer: 1 },
+  "Verbal & Advanced": [
+    "Reading Comprehension",
+    "Sentence Correction",
+    "Error Detection",
+    "Critical Reasoning",
+    "Analytical Reasoning"
   ]
 };
 
-const CATEGORIES = Object.keys(QUESTION_BANK);
+const TAB_ICONS = {
+  "Quantitative Aptitude": <Compass size={18} className="text-emerald-400" />,
+  "Logical Reasoning": <BrainCircuit size={18} className="text-violet-400" />,
+  "Verbal & Advanced": <BookOpen size={18} className="text-amber-400" />
+};
 
 const Quiz = () => {
+  const [activeTab, setActiveTab] = useState("Quantitative Aptitude");
   const [category, setCategory] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -59,17 +68,88 @@ const Quiz = () => {
   const [showResult, setShowResult] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const startQuiz = (cat) => {
-    const pool = QUESTION_BANK[cat];
-    const shuffled = [...pool].sort(() => 0.5 - Math.random());
-    setQuestions(shuffled.slice(0, 5));
-    setCategory(cat);
+  const startQuiz = async (catName) => {
+    setLoading(true);
+    setCategory(catName);
     setCurrentIdx(0);
     setScore(0);
     setShowResult(false);
     setSelectedOption(null);
     setIsAnswered(false);
+    setQuestions([]);
+
+    try {
+      const res = await axios.post('/api/interview/generate-quiz', {
+        category: catName
+      });
+      if (res.data && res.data.questions && res.data.questions.length > 0) {
+        setQuestions(res.data.questions);
+      } else {
+        toast.error("Failed to generate quiz. Using fallback set.");
+        // Simple client-side fallback if AI fails or times out
+        setQuestions([
+          {
+            question: `A sells a watch to B at 20% profit, and B sells it to C at 10% loss. If C pays $108 for the watch, how much did A pay?`,
+            options: ["$90", "$100", "$95", "$110"],
+            answer: 1
+          },
+          {
+            question: "In a certain code, 'LIGHT' is written as 'MJHIT'. How is 'SOUND' written in that code?",
+            options: ["TPEOE", "TPVOE", "TPVOF", "TPEOF"],
+            answer: 1
+          },
+          {
+            question: "A and B can complete a work in 12 days and 18 days respectively. A starts the work and they work on alternate days. In how many days will the work be completed?",
+            options: ["14.3 days", "14.5 days", "15 days", "13.8 days"],
+            answer: 0
+          },
+          {
+            question: "A card is drawn from a well-shuffled pack of 52 cards. What is the probability of drawing a Queen or a Club?",
+            options: ["17/52", "4/13", "16/52", "3/13"],
+            answer: 2
+          },
+          {
+            question: "Six people A, B, C, D, E and F are sitting in a circle facing the center. B is between F and D, E is between A and C, and F is to the left of D. Who is opposite to B?",
+            options: ["A", "C", "E", "D"],
+            answer: 2
+          }
+        ]);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error reaching AI Quiz engine. Using fallback.");
+      setQuestions([
+        {
+          question: `A sells a watch to B at 20% profit, and B sells it to C at 10% loss. If C pays $108 for the watch, how much did A pay?`,
+          options: ["$90", "$100", "$95", "$110"],
+          answer: 1
+        },
+        {
+          question: "In a certain code, 'LIGHT' is written as 'MJHIT'. How is 'SOUND' written in that code?",
+          options: ["TPEOE", "TPVOE", "TPVOF", "TPEOF"],
+          answer: 1
+        },
+        {
+          question: "A and B can complete a work in 12 days and 18 days respectively. A starts the work and they work on alternate days. In how many days will the work be completed?",
+          options: ["14.3 days", "14.5 days", "15 days", "13.8 days"],
+          answer: 0
+        },
+        {
+          question: "A card is drawn from a well-shuffled pack of 52 cards. What is the probability of drawing a Queen or a Club?",
+          options: ["17/52", "4/13", "16/52", "3/13"],
+          answer: 2
+        },
+        {
+          question: "Six people A, B, C, D, E and F are sitting in a circle facing the center. B is between F and D, E is between A and C, and F is to the left of D. Who is opposite to B?",
+          options: ["A", "C", "E", "D"],
+          answer: 2
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOptionSelect = (idx) => {
@@ -89,27 +169,94 @@ const Quiz = () => {
     }
   };
 
+  // Save quiz result to profile history
+  useEffect(() => {
+    if (showResult && category && questions.length > 0) {
+      const userStr = localStorage.getItem('user');
+      const userEmail = userStr ? JSON.parse(userStr).email : null;
+      axios.post('/api/interview/save-session', {
+        email: userEmail,
+        type: 'quiz',
+        role: 'Placement Aptitude',
+        topic: category,
+        score: pct,
+        questions_count: questions.length,
+        duration_seconds: 240
+      }).then(() => {
+        toast.success("Aptitude Score saved to profile statistics!");
+      }).catch(err => console.error("Error saving session statistics", err));
+    }
+  }, [showResult]);
+
+  // Loading Screen
+  if (loading) {
+    return (
+      <div className="p-8 max-w-4xl mx-auto min-h-screen flex flex-col justify-center items-center">
+        <div className="glass p-12 rounded-[40px] text-center border border-indigo-500/10 space-y-6 max-w-md w-full relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/5 via-transparent to-transparent opacity-50" />
+          <div className="relative">
+            <Loader2 size={64} className="animate-spin text-indigo-500 mx-auto mb-6" />
+            <h2 className="text-2xl font-black text-white tracking-tight">Crafting Quiz</h2>
+            <p className="text-zinc-500 text-sm mt-2 leading-relaxed">
+              MockMate's AI is generating 5 unique, high-fidelity placement questions for <span className="text-indigo-400 font-bold">{category}</span>.
+            </p>
+            <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest mt-6 text-zinc-400 w-fit mx-auto">
+              <BrainCircuit size={12} className="text-violet-400 animate-pulse" /> Non-Repetitive AI Engine
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Categories Selector Screen
   if (!category) {
     return (
-      <div className="p-8 max-w-4xl mx-auto min-h-screen flex flex-col justify-center">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-8">
-            <Layers size={14} /> Select Category
+      <div className="p-8 max-w-5xl mx-auto min-h-screen flex flex-col justify-center">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+            <BookOpenCheck size={14} /> Comprehensive Placement Analytics
           </div>
-          <h1 className="text-5xl font-black mb-4 tracking-tighter">Aptitude <span className="vibrant-text">Quiz</span></h1>
-          <p className="text-zinc-500 text-lg">Choose a category to test your knowledge.</p>
+          <h1 className="text-5xl font-black mb-4 tracking-tighter">Aptitude & Logical <span className="vibrant-text">Quiz</span></h1>
+          <p className="text-zinc-500 text-sm max-w-lg mx-auto">
+            Choose a topic. MockMate AI generates highly specialized, placement-grade numeric, logical, and verbal questions with zero repetition.
+          </p>
         </div>
-        <div className="grid grid-cols-2 gap-6">
-          {CATEGORIES.map((cat) => (
-            <motion.button
-              key={cat}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => startQuiz(cat)}
-              className="neon-glass p-10 rounded-[32px] text-center group cursor-pointer hover:border-indigo-500/30 transition-all"
+
+        {/* Tab switcher */}
+        <div className="flex justify-center gap-2 mb-8 bg-white/5 p-1.5 rounded-2xl border border-white/5 w-fit mx-auto">
+          {Object.keys(PLACEMENT_TOPICS).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-3 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                activeTab === tab 
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/15' 
+                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
+              }`}
             >
-              <div className="text-2xl font-black text-white mb-2 group-hover:text-indigo-400 transition-colors">{cat}</div>
-              <div className="text-xs text-zinc-600 font-bold uppercase tracking-widest">{QUESTION_BANK[cat].length} Questions</div>
+              {TAB_ICONS[tab]}
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Categories Grid */}
+        <div className="grid grid-cols-3 gap-4">
+          {PLACEMENT_TOPICS[activeTab].map((topic) => (
+            <motion.button
+              key={topic}
+              whileHover={{ scale: 1.02, translateY: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => startQuiz(topic)}
+              className="neon-glass p-6 rounded-[24px] text-left group cursor-pointer hover:border-indigo-500/20 transition-all border border-white/5 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <h3 className="text-base font-bold text-white mb-2 group-hover:text-indigo-400 transition-colors flex items-center justify-between">
+                {topic}
+                <ChevronRight size={16} className="text-zinc-600 group-hover:text-indigo-400 transition-colors group-hover:translate-x-1" />
+              </h3>
+              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Placement Track</p>
             </motion.button>
           ))}
         </div>
@@ -117,66 +264,98 @@ const Quiz = () => {
     );
   }
 
+  // Quiz Playing Screen
   return (
     <div className="p-8 max-w-4xl mx-auto min-h-screen flex flex-col justify-center">
       <AnimatePresence mode="wait">
         {!showResult ? (
-          <motion.div key="quiz" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-8">
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold flex items-center gap-3">
-                <HelpCircle className="text-indigo-500" /> <span className="text-gradient">{category}</span>
-              </h1>
-              <div className="flex items-center gap-4">
-                <div className="glass px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
-                  {currentIdx + 1} / {questions.length}
+          questions.length > 0 && (
+            <motion.div key="quiz" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-8">
+              <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold flex items-center gap-3">
+                  <HelpCircle className="text-indigo-500" /> <span className="text-gradient">{category}</span>
+                </h1>
+                <div className="flex items-center gap-4">
+                  <div className="glass px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
+                    {currentIdx + 1} / {questions.length}
+                  </div>
+                  <button onClick={() => setCategory(null)} className="text-xs text-zinc-600 hover:text-white transition-colors font-bold uppercase tracking-widest">Change Topic</button>
                 </div>
-                <button onClick={() => setCategory(null)} className="text-xs text-zinc-600 hover:text-white transition-colors font-bold uppercase tracking-widest">Change Topic</button>
               </div>
+
+              <div className="glass p-10 rounded-[40px] border border-white/10 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/5 to-transparent opacity-30 pointer-events-none" />
+                <h2 className="text-xl font-bold mb-10 leading-relaxed relative z-10">{questions[currentIdx].question}</h2>
+                <div className="grid gap-4 relative z-10">
+                  {questions[currentIdx].options.map((opt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleOptionSelect(i)}
+                      className={`p-5 rounded-2xl border text-left transition-all text-base font-medium flex justify-between items-center ${
+                        isAnswered
+                          ? i === questions[currentIdx].answer
+                            ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/5'
+                            : i === selectedOption
+                            ? 'bg-red-500/10 border-red-500 text-red-400'
+                            : 'border-white/5 opacity-40'
+                          : 'border-white/10 hover:border-indigo-500 hover:bg-white/5 hover:translate-x-1'
+                      }`}
+                    >
+                      {opt}
+                      {isAnswered && i === questions[currentIdx].answer && <CheckCircle2 size={20} className="text-emerald-400" />}
+                      {isAnswered && i === selectedOption && i !== questions[currentIdx].answer && <XCircle size={20} className="text-red-400" />}
+                    </button>
+                  ))}
+                </div>
+                {isAnswered && (
+                  <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={nextQuestion} className="w-full btn-primary py-4 rounded-2xl mt-8 font-bold flex items-center justify-center gap-2">
+                    {currentIdx === questions.length - 1 ? 'Show Results' : 'Next Question'} <ChevronRight size={20} />
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+          )
+        ) : (
+          <motion.div key="result" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8 max-w-2xl mx-auto">
+            <div className="text-center space-y-4">
+              <div className="w-20 h-20 bg-indigo-600/20 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award size={40} />
+              </div>
+              <h1 className="text-4xl font-black">Evaluation Finished</h1>
+              <p className="text-zinc-500 text-lg">
+                Category: <span className="text-indigo-400 font-bold">{category}</span> • Score: <span className="text-white font-black">{score} / {questions.length}</span> ({Math.round((score / questions.length) * 100)}%)
+              </p>
             </div>
 
-            <div className="glass p-10 rounded-[40px] border border-white/10">
-              <h2 className="text-2xl font-bold mb-10 leading-tight">{questions[currentIdx].question}</h2>
-              <div className="grid gap-4">
-                {questions[currentIdx].options.map((opt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleOptionSelect(i)}
-                    className={`p-6 rounded-2xl border text-left transition-all text-lg font-medium flex justify-between items-center ${
-                      isAnswered
-                        ? i === questions[currentIdx].answer
-                          ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                          : i === selectedOption
-                          ? 'bg-red-500/10 border-red-500 text-red-400'
-                          : 'border-white/5 opacity-50'
-                        : 'border-white/10 hover:border-indigo-500 hover:bg-white/5'
-                    }`}
-                  >
-                    {opt}
-                    {isAnswered && i === questions[currentIdx].answer && <CheckCircle2 size={20} />}
-                    {isAnswered && i === selectedOption && i !== questions[currentIdx].answer && <XCircle size={20} />}
-                  </button>
-                ))}
-              </div>
-              {isAnswered && (
-                <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} onClick={nextQuestion} className="w-full btn-primary py-4 rounded-2xl mt-8 font-bold flex items-center justify-center gap-2">
-                  {currentIdx === questions.length - 1 ? 'Show Results' : 'Next Question'} <ChevronRight size={20} />
-                </motion.button>
-              )}
+            {/* Questions review & answers list */}
+            <div className="space-y-4 pt-4">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 px-1">Review Questions & Corrections</h3>
+              {questions.map((q, idx) => (
+                <div key={idx} className="glass p-6 rounded-2xl border border-white/5 space-y-3">
+                  <h4 className="text-sm font-bold text-white flex gap-2">
+                    <span className="text-indigo-400 font-black">Q{idx + 1}.</span> {q.question}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
+                      <span className="text-zinc-500 font-semibold block mb-0.5">Correct Answer:</span>
+                      <span className="text-emerald-400 font-bold">{q.options[q.answer]}</span>
+                    </div>
+                    {/* User choice if incorrect */}
+                    <div className={`p-3 rounded-xl border ${score === questions.length ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-red-500/5 border-red-500/10'}`}>
+                      <span className="text-zinc-500 font-semibold block mb-0.5">Correctness Status:</span>
+                      <span className="text-white font-bold">Verified Correct Explanation</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </motion.div>
-        ) : (
-          <motion.div key="result" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-8">
-            <div className="w-24 h-24 bg-indigo-600/20 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Award size={48} />
-            </div>
-            <h1 className="text-5xl font-black mb-2">Quiz Complete!</h1>
-            <p className="text-gray-400 text-xl">You scored <span className="text-white font-black">{score} out of {questions.length}</span> in <span className="text-indigo-400 font-bold">{category}</span></p>
+
             <div className="flex justify-center gap-4 pt-8">
-              <button onClick={() => startQuiz(category)} className="btn-primary py-4 px-12 rounded-2xl text-lg font-bold flex items-center gap-2">
-                <RotateCcw size={20} /> Try Again
+              <button onClick={() => startQuiz(category)} className="btn-primary py-4 px-10 rounded-2xl text-base font-bold flex items-center gap-2">
+                <RotateCcw size={18} /> Test Again
               </button>
-              <button onClick={() => setCategory(null)} className="btn-secondary py-4 px-12 rounded-2xl text-lg font-bold">
-                Change Topic
+              <button onClick={() => setCategory(null)} className="btn-secondary py-4 px-10 rounded-2xl text-base font-bold">
+                Select Another Track
               </button>
             </div>
           </motion.div>

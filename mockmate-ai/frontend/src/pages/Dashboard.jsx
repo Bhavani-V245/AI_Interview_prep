@@ -46,48 +46,76 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    axios.get('/api/interview/history')
+    const userStr = localStorage.getItem('user');
+    const userEmail = userStr ? JSON.parse(userStr).email : null;
+    axios.get(`/api/interview/history?email=${encodeURIComponent(userEmail || '')}`)
       .then(res => {
         setHistoryData(res.data);
         const fetchedSessions = res.data.sessions || [];
-        if (fetchedSessions.length === 0) {
-          setNotifications([
-            { id: 1, title: 'Welcome to MockMate AI! 🧠', desc: 'Let\'s get started: Generate custom technical or behavioral interview questions on the AI Interview tab!', read: false, time: 'Just now' },
-            { id: 2, title: 'Check your Resume ATS score 📄', desc: 'Upload your resume PDF to the Resume Analyzer to view compatibility and skills matching!', read: false, time: 'Just now' },
-            { id: 3, title: 'Practice Coding Speed 💻', desc: 'Open the Coding Round tab to practice algorithm challenges inside a Monaco IDE sandbox!', read: false, time: 'Just now' }
-          ]);
-        } else {
-          // Map last 3 real activities into notifications
-          const activeNotifs = fetchedSessions.slice(-3).reverse().map((sess, idx) => {
-            let title = 'Activity Completed';
-            let desc = `You completed a session on ${sess.date}.`;
-            if (sess.type === 'interview' || sess.type === 'voice') {
-              title = sess.type === 'voice' ? '🎙️ Voice Interview Finished' : '💬 AI Mock Interview Done';
-              desc = `Role: ${sess.role || 'Developer'} (${sess.topic || 'General'}). Score: ${sess.score}/10!`;
-            } else if (sess.type === 'coding') {
-              title = '💻 Code Evaluation Complete';
-              desc = `Successfully processed: "${sess.role || 'Algorithms'}". Gemini grading: ${sess.score}/10!`;
-            } else if (sess.type === 'quiz') {
-              title = '🏆 Aptitude Quiz Completed';
-              desc = `Evaluated: ${sess.topic || 'General CS'} Quiz. Final test accuracy: ${sess.score}%!`;
-            } else if (sess.type === 'resume') {
-              title = '📄 Resume Analysis Executed';
-              desc = `Completed parsing metrics for your resume. ATS compatibility score: ${sess.score}%!`;
-            }
-            
-            // Format time display
-            const timeVal = sess.date ? sess.date.split(' ')[1] : 'Today';
-            
-            return {
-              id: idx + 1,
-              title,
-              desc,
-              read: false,
-              time: timeVal
-            };
-          });
-          setNotifications(activeNotifs);
-        }
+        
+        // Base onboarding guidelines with dynamic completed/unread states based on actual user sessions
+        const initialNotifs = [
+          { 
+            id: 101, 
+            title: '💬 AI Interview Pending', 
+            desc: 'Generate custom technical or behavioral interview questions to test your presentation skill!', 
+            read: fetchedSessions.some(s => s.type === 'interview' || s.type === 'voice'), 
+            time: 'Placement Core' 
+          },
+          { 
+            id: 102, 
+            title: '💻 Monaco Coding Practice Recommended', 
+            desc: 'Open the Monaco IDE sandbox to practice solving complex placement coding challenges!', 
+            read: fetchedSessions.some(s => s.type === 'coding'), 
+            time: 'Algorithms' 
+          },
+          { 
+            id: 103, 
+            title: '🏆 Practice Placement Aptitude', 
+            desc: 'Take logical reasoning and quantitative aptitude quizzes to test and master critical concepts!', 
+            read: fetchedSessions.some(s => s.type === 'quiz'), 
+            time: 'Aptitude' 
+          },
+          { 
+            id: 104, 
+            title: '👥 Group Discussion simulator', 
+            desc: 'Practice Group Discussions on AI-drawn surprise placement topics with realistic peer avatars!', 
+            read: fetchedSessions.some(s => s.type === 'group_discussion'), 
+            time: 'GD Sandbox' 
+          }
+        ];
+        
+        // Dynamic notifications mapped from completed sessions
+        const activeNotifs = fetchedSessions.slice(-3).reverse().map((sess, idx) => {
+          let title = 'Activity Completed';
+          let desc = `You completed a session on ${sess.date}.`;
+          if (sess.type === 'interview' || sess.type === 'voice') {
+            title = sess.type === 'voice' ? '🎙️ Voice Interview Finished' : '💬 AI Mock Interview Done';
+            desc = `Role: ${sess.role || 'Developer'} (${sess.topic || 'General'}). Score: ${sess.score}/10!`;
+          } else if (sess.type === 'coding') {
+            title = '💻 Code Evaluation Complete';
+            desc = `Successfully processed: "${sess.topic || 'Algorithms'}". Score: ${sess.score}/10!`;
+          } else if (sess.type === 'quiz') {
+            title = '🏆 Aptitude Quiz Completed';
+            desc = `Evaluated: ${sess.topic || 'General CS'} Quiz. Accuracy: ${sess.score}%!`;
+          } else if (sess.type === 'group_discussion') {
+            title = '👥 Group Discussion Finished';
+            desc = `Simulated discussion on "${sess.topic}". Evaluation scorecard saved!`;
+          }
+          
+          const timeVal = sess.date ? sess.date.split(' ')[1] : 'Today';
+          
+          return {
+            id: idx + 1,
+            title,
+            desc,
+            read: false,
+            time: timeVal
+          };
+        });
+        
+        // Merge onboarding items and active completed items
+        setNotifications([...activeNotifs, ...initialNotifs]);
       })
       .catch(() => {
         setHistoryData({ sessions: [], stats: { total_sessions: 0, avg_score: 0, total_time_hours: 0, total_questions: 0 } });
@@ -95,11 +123,68 @@ const Dashboard = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  const sessions = historyData?.sessions || [];
+  const statsData = historyData?.stats || { total_sessions: 0, avg_score: 0, total_time_hours: 0, total_questions: 0 };
+
+  const calculateReadiness = () => {
+    if (sessions.length === 0) return { score: 0, completed: 0, advice: "Begin taking Technical Interviews, Aptitude Quizzes, Monaco Coding Rounds, and Group Discussions to calculate your job readiness.", domains: { interview: 0, coding: 0, quiz: 0, gd: 0 }, nextStep: { label: "Technical Mock", desc: "Start behavioral/technical mock", path: "/interview" } };
+    
+    const domains = {
+      interview: sessions.filter(s => s.type === 'interview' || s.type === 'voice').length,
+      coding: sessions.filter(s => s.type === 'coding').length,
+      quiz: sessions.filter(s => s.type === 'quiz').length,
+      gd: sessions.filter(s => s.type === 'group_discussion').length
+    };
+    
+    let domainPoints = 0;
+    let completedCount = 0;
+    if (domains.interview > 0) { domainPoints += 15; completedCount++; }
+    if (domains.coding > 0) { domainPoints += 15; completedCount++; }
+    if (domains.quiz > 0) { domainPoints += 15; completedCount++; }
+    if (domains.gd > 0) { domainPoints += 15; completedCount++; }
+    
+    const consistencyPoints = Math.min(20, sessions.length * 2);
+    const avgScore = statsData.avg_score || 0;
+    const scorePoints = Math.min(20, (avgScore / 10) * 20);
+    
+    const finalScore = Math.min(100, Math.round(domainPoints + consistencyPoints + scorePoints));
+    
+    let advice = "";
+    let nextStep = { label: "System Design Mock", desc: "Focus: Scalability", path: "/interview" };
+    
+    if (domains.interview === 0) {
+      advice = "Technical Mock: Complete your first mock session to unlock coding and communication metrics.";
+      nextStep = { label: "Technical Interview", desc: "Start behavioral/technical mock", path: "/interview" };
+    } else if (domains.coding === 0) {
+      advice = "Monaco Coding Sandbox: Complete a coding challenge. Competitive companies filter by auto-code rounds.";
+      nextStep = { label: "Monaco Coding Sandbox", desc: "Solve algorithm challenges", path: "/coding" };
+    } else if (domains.quiz === 0) {
+      advice = "Aptitude Assessment: Standard aptitude screening. Practice Profit & Loss, Time & Work quizzes.";
+      nextStep = { label: "Aptitude Quiz", desc: "Practice quantitative topics", path: "/quiz" };
+    } else if (domains.gd === 0) {
+      advice = "Group Discussion: Start a simulation to check vocabulary and peer interaction scoring.";
+      nextStep = { label: "Group Discussion Prep", desc: "Draw blind placement topics", path: "/gd" };
+    } else {
+      advice = "Outstanding profile! You have active coverage across all campus selection domains!";
+      nextStep = { label: "Advanced System Design", desc: "Focus: High Availability", path: "/interview" };
+    }
+    
+    return {
+      score: finalScore,
+      completed: completedCount,
+      domains,
+      advice,
+      nextStep
+    };
+  };
+
+  const readinessData = calculateReadiness();
+
   const stats = historyData ? [
     { label: 'Sessions', value: String(historyData.stats.total_sessions), icon: <Trophy size={18} />, trend: `+${Math.min(historyData.stats.total_sessions, 5)}`, color: 'text-amber-400', bg: 'bg-amber-400/10', glow: 'shadow-amber-400/20' },
     { label: 'Avg Score', value: String(historyData.stats.avg_score), icon: <Target size={18} />, trend: '+0.5', color: 'text-emerald-400', bg: 'bg-emerald-400/10', glow: 'shadow-emerald-400/20' },
-    { label: 'Practice Time', value: `${historyData.stats.total_time_hours}h`, icon: <Clock size={18} />, trend: '+1.2', color: 'text-cyan-400', bg: 'bg-cyan-400/10', glow: 'shadow-cyan-400/20' },
-    { label: 'Questions', value: String(historyData.stats.total_questions), icon: <Zap size={18} />, trend: `+${historyData.stats.total_questions}`, color: 'text-indigo-400', bg: 'bg-indigo-400/10', glow: 'shadow-indigo-400/20' },
+    { label: 'Job Readiness', value: `${readinessData.score}%`, icon: <Activity size={18} />, trend: `AI Prediction`, color: 'text-fuchsia-400', bg: 'bg-fuchsia-400/10', glow: 'shadow-fuchsia-400/20' },
+    { label: 'Questions Done', value: String(historyData.stats.total_questions), icon: <Zap size={18} />, trend: `+${historyData.stats.total_questions}`, color: 'text-indigo-400', bg: 'bg-indigo-400/10', glow: 'shadow-indigo-400/20' },
   ] : [];
 
   const recentSessions = historyData?.sessions?.slice(-3).reverse() || [];
@@ -311,11 +396,15 @@ const Dashboard = () => {
                       <Calendar size={18} className="text-zinc-600" /> Suggested Next
                     </h3>
                     <div className="space-y-6">
-                      <Link to="/interview" className="p-6 rounded-[32px] bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all cursor-pointer group block">
-                        <div className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-2">Recommended</div>
-                        <div className="text-lg font-black text-white group-hover:text-indigo-400 transition-colors tracking-tight">System Design Mock</div>
-                        <div className="text-[10px] font-black text-zinc-600 uppercase mt-2 tracking-widest italic">Focus: Scalability</div>
+                      <Link to={readinessData.nextStep.path} className="p-6 rounded-[32px] bg-[#8b5cf6]/5 border border-[#8b5cf6]/10 hover:border-[#8b5cf6]/30 transition-all cursor-pointer group block">
+                        <div className="text-[11px] font-black text-fuchsia-400 uppercase tracking-widest mb-2">🎓 Recommended</div>
+                        <div className="text-lg font-black text-white group-hover:text-fuchsia-400 transition-colors tracking-tight">{readinessData.nextStep.label}</div>
+                        <div className="text-[10px] font-bold text-zinc-400 uppercase mt-2 tracking-wide leading-relaxed">{readinessData.nextStep.desc}</div>
                       </Link>
+                      
+                      <div className="p-5 rounded-2xl bg-white/[0.01] border border-white/5 text-[11px] leading-relaxed text-slate-500 font-semibold italic">
+                        💡 <span className="text-purple-300 not-italic">AI Insight:</span> {readinessData.advice}
+                      </div>
                     </div>
                   </div>
                 </div>

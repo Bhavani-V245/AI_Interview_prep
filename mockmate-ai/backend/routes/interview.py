@@ -1,5 +1,9 @@
 from flask import Blueprint, request, jsonify
-from utils.gemini_helper import generate_interview_questions, get_feedback, get_hint, evaluate_code, get_assistant_response
+from utils.gemini_helper import (
+    generate_interview_questions, get_feedback, get_hint, evaluate_code, 
+    get_assistant_response, generate_custom_coding_problem, generate_custom_quiz,
+    simulate_gd_peers, evaluate_gd_session, generate_random_gd_topic
+)
 import json
 import os
 from datetime import datetime
@@ -8,20 +12,38 @@ interview_bp = Blueprint('interview', __name__)
 
 SESSIONS_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'sessions.json')
 
-def _ensure_data_dir():
-    os.makedirs(os.path.dirname(SESSIONS_FILE), exist_ok=True)
-    if not os.path.exists(SESSIONS_FILE):
-        with open(SESSIONS_FILE, 'w') as f:
-            json.dump([], f)
+def _get_sessions_file(email=None):
+    if not email or not isinstance(email, str) or email.strip() == '' or email.lower() in ('null', 'undefined'):
+        return SESSIONS_FILE
+    safe_email = "".join(c for c in email if c.isalnum() or c in ('@', '.', '_', '-'))
+    safe_email = safe_email.replace('@', '_at_').replace('.', '_')
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', f'sessions_{safe_email}.json')
 
-def _load_sessions():
-    _ensure_data_dir()
-    with open(SESSIONS_FILE, 'r') as f:
-        return json.load(f)
+def _load_sessions(email=None):
+    filepath = _get_sessions_file(email)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    if not os.path.exists(filepath):
+        # Migrate history from global sessions.json if it exists
+        if os.path.exists(SESSIONS_FILE) and filepath != SESSIONS_FILE:
+            try:
+                import shutil
+                shutil.copyfile(SESSIONS_FILE, filepath)
+            except Exception:
+                with open(filepath, 'w') as f:
+                    json.dump([], f)
+        else:
+            with open(filepath, 'w') as f:
+                json.dump([], f)
+    try:
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return []
 
-def _save_sessions(sessions):
-    _ensure_data_dir()
-    with open(SESSIONS_FILE, 'w') as f:
+def _save_sessions(sessions, email=None):
+    filepath = _get_sessions_file(email)
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    with open(filepath, 'w') as f:
         json.dump(sessions, f, indent=2)
 
 @interview_bp.route('/generate', methods=['POST'])
@@ -76,7 +98,8 @@ def eval_code():
 @interview_bp.route('/save-session', methods=['POST'])
 def save_session():
     data = request.json
-    sessions = _load_sessions()
+    email = data.get('email')
+    sessions = _load_sessions(email)
     
     session = {
         "id": len(sessions) + 1,
@@ -90,15 +113,15 @@ def save_session():
     }
     
     sessions.append(session)
-    # Keep last 50 sessions
-    sessions = sessions[-50:]
-    _save_sessions(sessions)
+    sessions = sessions[-100:]
+    _save_sessions(sessions, email)
     
     return jsonify({"success": True, "session": session})
 
 @interview_bp.route('/history', methods=['GET'])
 def history():
-    sessions = _load_sessions()
+    email = request.args.get('email')
+    sessions = _load_sessions(email)
     
     # Calculate aggregate stats
     total = len(sessions)
@@ -122,4 +145,69 @@ def assistant():
     history = data.get('history', [])
     response = get_assistant_response(history)
     return jsonify({"response": response})
+
+@interview_bp.route('/generate-coding-problem', methods=['POST'])
+def gen_coding_problem():
+    data = request.json
+    difficulty = data.get('difficulty', 'Medium')
+    
+    problem_json = generate_custom_coding_problem(difficulty)
+    try:
+        problem_data = json.loads(problem_json)
+        return jsonify(problem_data)
+    except Exception as e:
+        return jsonify({"error": f"Failed to parse coding problem: {str(e)}", "raw": problem_json}), 500
+
+@interview_bp.route('/generate-quiz', methods=['POST'])
+def gen_quiz():
+    data = request.json
+    category = data.get('category', 'Quantitative Aptitude')
+    
+    quiz_json = generate_custom_quiz(category)
+    try:
+        quiz_data = json.loads(quiz_json)
+        return jsonify({"questions": quiz_data})
+    except Exception as e:
+        return jsonify({"error": f"Failed to parse quiz questions: {str(e)}", "raw": quiz_json}), 500
+
+@interview_bp.route('/gd/simulate', methods=['POST'])
+def gd_simulate():
+    data = request.json
+    topic = data.get('topic', 'AI Revolution')
+    history = data.get('history', [])
+    
+    peer_json = simulate_gd_peers(topic, history)
+    try:
+        peer_data = json.loads(peer_json)
+        return jsonify(peer_data)
+    except Exception as e:
+        return jsonify({"error": f"Failed to parse peer statement: {str(e)}", "raw": peer_json}), 500
+
+@interview_bp.route('/gd/evaluate', methods=['POST'])
+def gd_evaluate():
+    data = request.json
+    topic = data.get('topic', 'AI Revolution')
+    history = data.get('history', [])
+    
+    eval_json = evaluate_gd_session(topic, history)
+    try:
+        eval_data = json.loads(eval_json)
+        return jsonify(eval_data)
+    except Exception as e:
+        return jsonify({"error": f"Failed to parse GD evaluation: {str(e)}", "raw": eval_json}), 500
+
+@interview_bp.route('/gd/generate-topic', methods=['POST'])
+def gd_gen_topic():
+    data = request.json
+    category = data.get('category', 'Technology')
+    
+    topic_json = generate_random_gd_topic(category)
+    try:
+        topic_data = json.loads(topic_json)
+        return jsonify(topic_data)
+    except Exception as e:
+        return jsonify({"error": f"Failed to parse generated topic: {str(e)}", "raw": topic_json}), 500
+
+
+
 
