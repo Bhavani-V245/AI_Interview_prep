@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
@@ -16,7 +16,9 @@ import {
   Activity,
   Brain,
   Plus,
-  Loader2
+  Loader2,
+  Check,
+  MessageSquare
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -24,6 +26,24 @@ const Dashboard = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{"name": "Developer"}');
   const [historyData, setHistoryData] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Notification states
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Interview Recommendation', desc: 'Try Voice Mode to practice seamless real-time speech delivery!', read: false, time: '2m ago' },
+    { id: 2, title: 'Resume Analyzed', desc: 'Your parsed resume ATS score matches 85% of standard tech requirements!', read: false, time: '1h ago' },
+    { id: 3, title: 'New Coding Challenge', desc: 'Solve "Merge Intervals" to practice array merge logic!', read: false, time: '3h ago' }
+  ]);
+
+  const hasUnread = notifications.some(n => !n.read);
+
+  const markAllAsRead = () => {
+    setNotifications(notifications.map(n => ({ ...n, read: true })));
+  };
+
+  const clearNotification = (id) => {
+    setNotifications(notifications.filter(n => n.id !== id));
+  };
 
   useEffect(() => {
     axios.get('/api/interview/history')
@@ -55,9 +75,84 @@ const Dashboard = () => {
             />
           </div>
           <div className="flex items-center gap-8">
-            <div className="p-3 text-slate-400 hover:text-white transition-colors cursor-pointer relative group">
-              <Bell size={24} />
-              <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-fuchsia-500 rounded-full border-2 border-[#030014] group-hover:scale-125 transition-transform shadow-[0_0_10px_rgba(217,70,239,0.8)]"></div>
+            <div className="relative">
+              <div 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-3 text-slate-400 hover:text-white transition-colors cursor-pointer relative group"
+              >
+                <Bell size={24} />
+                {hasUnread && (
+                  <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-fuchsia-500 rounded-full border-2 border-[#030014] group-hover:scale-125 transition-transform shadow-[0_0_10px_rgba(217,70,239,0.8)]"></div>
+                )}
+              </div>
+
+              <AnimatePresence>
+                {showNotifications && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                    className="absolute right-0 mt-4 w-80 neon-glass rounded-3xl p-5 shadow-[0_10px_40px_rgba(168,85,247,0.25)] border border-purple-500/20 z-50 text-left"
+                  >
+                    <div className="flex justify-between items-center mb-4 border-b border-purple-500/10 pb-2">
+                      <span className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+                        <Bell size={12} className="text-fuchsia-400" /> Notifications
+                      </span>
+                      {hasUnread && (
+                        <button 
+                          onClick={markAllAsRead}
+                          className="text-[10px] font-bold text-fuchsia-400 hover:text-white transition-colors"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                      {notifications.length === 0 ? (
+                        <div className="text-center py-6 text-xs text-slate-500 font-medium">
+                          No notifications yet!
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div 
+                            key={notif.id}
+                            className={`p-3 rounded-2xl border transition-all duration-300 relative group/item ${
+                              notif.read 
+                                ? 'bg-white/[0.01] border-white/5 text-slate-400' 
+                                : 'bg-purple-500/5 border-purple-500/10 text-slate-200 shadow-[0_0_10px_rgba(168,85,247,0.05)]'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start gap-2 mb-1">
+                              <span className="font-bold text-[11px]">{notif.title}</span>
+                              <span className="text-[9px] text-slate-500 font-semibold">{notif.time}</span>
+                            </div>
+                            <p className="text-[10px] leading-relaxed mb-2">{notif.desc}</p>
+                            <div className="flex justify-end gap-2">
+                              {!notif.read && (
+                                <button
+                                  onClick={() => {
+                                    setNotifications(notifications.map(n => n.id === notif.id ? { ...n, read: true } : n));
+                                  }}
+                                  className="text-[9px] font-bold text-purple-400 hover:text-white flex items-center gap-1 transition-colors"
+                                >
+                                  <Check size={10} /> Mark Read
+                                </button>
+                              )}
+                              <button
+                                onClick={() => clearNotification(notif.id)}
+                                className="text-[9px] font-bold text-slate-500 hover:text-rose-400 transition-colors"
+                              >
+                                Dismiss
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
             <Link to="/interview" className="btn-vibrant py-3.5 px-8 text-xs flex items-center gap-2">
               <Plus size={16} /> NEW SESSION
