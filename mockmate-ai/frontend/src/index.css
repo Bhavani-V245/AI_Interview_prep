@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#050505] text-white antialiased selection:bg-indigo-500/30;
+    @apply bg-[#030014] text-slate-200 antialiased selection:bg-purple-500/30;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
@@ -12,57 +12,73 @@
 @layer components {
   /* Premium Glassmorphism */
   .glass {
-    @apply bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+    @apply bg-[#0f0b29]/40 backdrop-blur-2xl border border-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)];
   }
 
   .neon-glass {
-    @apply bg-white/[0.02] backdrop-blur-3xl border border-white/5 shadow-2xl transition-all duration-500 hover:border-indigo-500/30 hover:bg-white/[0.05];
+    @apply bg-[#0f0b29]/60 backdrop-blur-3xl border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-500 hover:border-purple-400/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:bg-[#1a143a]/80;
+  }
+
+  .neon-glass-active {
+    @apply bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-3xl border border-purple-400/50 shadow-[0_0_20px_rgba(168,85,247,0.4)] text-white;
   }
 
   /* Vibrant Text */
   .vibrant-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-400 to-pink-500;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-400 to-blue-400 drop-shadow-[0_0_10px_rgba(192,132,252,0.5)];
   }
 
   /* SaaS Buttons */
   .btn-primary {
-    @apply px-8 py-3 bg-white text-black font-black rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-white/20;
+    @apply px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] border border-white/10;
   }
 
   .btn-secondary {
-    @apply px-8 py-3 bg-white/5 text-white font-black rounded-2xl border border-white/10 transition-all duration-300 hover:bg-white/10 hover:border-white/20 backdrop-blur-xl;
+    @apply px-8 py-3 bg-white/5 text-purple-300 font-black rounded-2xl border border-purple-500/30 transition-all duration-300 hover:bg-purple-500/10 hover:border-purple-400 hover:text-white backdrop-blur-xl hover:shadow-[0_0_20px_rgba(168,85,247,0.2)];
   }
 
-  /* Shimmer Effect */
-  .shimmer {
-    @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent;
+  .btn-vibrant {
+    @apply px-6 py-2.5 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(217,70,239,0.5)] border border-white/20;
   }
 
-  /* Bento Layout Classes */
-  .bento-card {
-    @apply relative overflow-hidden rounded-[40px] border border-white/5 bg-white/[0.02] p-10 transition-all duration-500 hover:border-indigo-500/20 hover:bg-white/[0.04];
+  /* Animated Borders & Glows */
+  .animated-border {
+    position: relative;
+  }
+  .animated-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #a855f7, #ec4899, #3b82f6, #a855f7);
+    z-index: -1;
+    filter: blur(10px);
+    opacity: 0.5;
+    animation: rotate 4s linear infinite;
   }
 
   /* Vibrant Backgrounds */
   .aurora {
     @apply fixed inset-0 -z-10 pointer-events-none;
     background: 
-      radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-      radial-gradient(circle at 80% 70%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
-    filter: blur(100px);
+      radial-gradient(circle at 15% 50%, rgba(168, 85, 247, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+    filter: blur(80px);
   }
 }
 
 /* Animations */
-@keyframes shimmer {
-  100% { transform: translateX(100%); }
-}
-
-.float {
-  animation: float 6s ease-in-out infinite;
+@keyframes rotate {
+  0% { filter: hue-rotate(0deg) blur(10px); }
+  100% { filter: hue-rotate(360deg) blur(10px); }
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
 }

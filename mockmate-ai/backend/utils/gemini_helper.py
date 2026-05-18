@@ -187,3 +187,41 @@ def get_hint(question):
         if "Quota exceeded" in err_msg or "429" in err_msg:
             return "Hint: Think about system resilience or caching! (API limit reached)"
         return "Hint: Try breaking down the problem into smaller parts."
+
+def get_assistant_response(chat_history):
+    system_instruction = """
+    You are "MockMate Companion", the official AI guide for the MockMate AI interview preparation platform.
+    Your main job is to help users understand how to use the platform, explain its features, and recommend specific career modules to try.
+    
+    The MockMate AI platform includes:
+    1. AI Mock Interviews: Role-specific generated questions with real-time evaluation and a context-aware Hint Chatbot.
+    2. Voice Mode: Fully hands-free speech-to-text mock interviews using browser Speech recognition.
+    3. LeetCode-style Coding Rounds: Professional Monaco editor, client-side JS runtime sandbox, and in-depth AI grading.
+    4. Resume Analyzer: ATS scoring, skill matching, and tailored recommendations.
+    5. Aptitude Quizzes: 36+ randomized questions across 4 technology tracks.
+    6. Typing Speed Test: Speed and accuracy tracking with tech passages.
+    7. Analytics Dashboard: Progression metrics, job readiness prediction, and practice charts.
+
+    Be futuristic, supportive, and conversational. Give clear recommendations (e.g. "I suggest testing your JS skills in the Coding Round or analyzing your resume to check your ATS score!").
+    Keep responses highly engaging, concise, and structured with clean markdown bullet points where appropriate.
+    """
+    
+    formatted_messages = [{"role": "user" if msg["role"] == "user" else "model", "parts": [msg["content"]]} for msg in chat_history]
+    
+    # Insert system instructions
+    formatted_messages.insert(0, {"role": "user", "parts": [system_instruction]})
+    formatted_messages.insert(1, {"role": "model", "parts": ["Acknowledged. I am MockMate Companion, ready to guide users on their path to career readiness!"]})
+    
+    try:
+        # Use simple structure for generate_content
+        response = model.generate_content(
+            contents=formatted_messages,
+            generation_config=genai.types.GenerationConfig(temperature=0.7)
+        )
+        return response.text.strip()
+    except Exception as e:
+        err_msg = str(e)
+        if "Quota exceeded" in err_msg or "429" in err_msg:
+            return "Hey there! I am MockMate Companion. The Gemini API is currently hitting high traffic limits, but you should definitely explore the **Coding Round** to practice your algorithms or upload a PDF to the **Resume Analyzer**!"
+        return f"Hey! I had trouble reaching my neural core: {err_msg}. You can easily navigate all features using the sidebar on the left!"
+

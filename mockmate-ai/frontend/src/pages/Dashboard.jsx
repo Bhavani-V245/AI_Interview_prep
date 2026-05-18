@@ -42,23 +42,22 @@ const Dashboard = () => {
   const recentSessions = historyData?.sessions?.slice(-3).reverse() || [];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-zinc-400 selection:bg-indigo-500/20">
-      <div className="vibrant-bg opacity-40"></div>
+    <div className="min-h-screen text-slate-300 selection:bg-purple-500/20">
       
       <div className="w-full">
-        <header className="h-24 border-b border-white/5 flex items-center justify-between px-12 sticky top-0 bg-black/60 backdrop-blur-2xl z-40">
+        <header className="h-24 border-b border-white/5 flex items-center justify-between px-12 sticky top-0 glass z-40 rounded-b-[40px] shadow-[0_10px_30px_rgba(168,85,247,0.1)]">
           <div className="relative w-full max-w-lg hidden sm:block">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-purple-400" size={16} />
             <input 
               type="text" 
               placeholder="Search intelligence labs, interview topics, or career paths..."
-              className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-14 pr-6 text-xs font-bold uppercase tracking-widest focus:border-indigo-500/50 outline-none transition-all placeholder:text-zinc-700"
+              className="w-full bg-[#0f0b29]/50 border border-purple-500/20 rounded-2xl py-3 pl-14 pr-6 text-xs font-bold uppercase tracking-widest focus:border-purple-400/50 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)] outline-none transition-all placeholder:text-slate-500 text-white"
             />
           </div>
           <div className="flex items-center gap-8">
-            <div className="p-3 text-zinc-500 hover:text-white transition-colors cursor-pointer relative group">
+            <div className="p-3 text-slate-400 hover:text-white transition-colors cursor-pointer relative group">
               <Bell size={24} />
-              <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-[#050505] group-hover:scale-125 transition-transform"></div>
+              <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-fuchsia-500 rounded-full border-2 border-[#030014] group-hover:scale-125 transition-transform shadow-[0_0_10px_rgba(217,70,239,0.8)]"></div>
             </div>
             <Link to="/interview" className="btn-vibrant py-3.5 px-8 text-xs flex items-center gap-2">
               <Plus size={16} /> NEW SESSION
@@ -68,10 +67,10 @@ const Dashboard = () => {
 
         <div className="p-12 max-w-[1400px] mx-auto">
           <div className="mb-16">
-            <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-4">
+            <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-fuchsia-400 mb-4">
               <Sparkles size={16} className="animate-pulse" /> Welcome back, {user.name}
             </div>
-            <h1 className="text-5xl font-black text-white tracking-tighter">Command Center.</h1>
+            <h1 className="text-5xl font-black vibrant-text tracking-tighter">Command Center.</h1>
           </div>
 
           {loading ? (

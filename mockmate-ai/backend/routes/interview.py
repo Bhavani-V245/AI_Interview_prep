@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from utils.gemini_helper import generate_interview_questions, get_feedback, get_hint, evaluate_code
+from utils.gemini_helper import generate_interview_questions, get_feedback, get_hint, evaluate_code, get_assistant_response
 import json
 import os
 from datetime import datetime
@@ -115,3 +115,11 @@ def history():
             "total_questions": total_questions
         }
     })
+
+@interview_bp.route('/assistant', methods=['POST'])
+def assistant():
+    data = request.json
+    history = data.get('history', [])
+    response = get_assistant_response(history)
+    return jsonify({"response": response})
+
