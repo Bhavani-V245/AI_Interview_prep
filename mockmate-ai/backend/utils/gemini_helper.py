@@ -2,6 +2,7 @@ import os
 import google.generativeai as genai
 from dotenv import load_dotenv
 import json
+import urllib.request
 
 load_dotenv()
 
@@ -13,6 +14,78 @@ else:
     print("Warning: GEMINI_API_KEY not found in environment variables.")
 
 model = genai.GenerativeModel('gemini-2.5-flash')
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+def call_github_fallback(prompt, system_instruction=None):
+    if not GITHUB_TOKEN:
+        raise ValueError("GitHub Token not found")
+        
+    url = "https://models.inference.ai.azure.com/chat/completions"
+    messages = []
+    if system_instruction:
+        messages.append({"role": "system", "content": system_instruction})
+    messages.append({"role": "user", "content": prompt})
+    
+    data = {
+        "messages": messages,
+        "model": "gpt-4o-mini",
+        "temperature": 0.7
+    }
+    
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(data).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {GITHUB_TOKEN}"
+        },
+        method="POST"
+    )
+    
+    with urllib.request.urlopen(req, timeout=12) as response:
+        res_data = json.loads(response.read().decode("utf-8"))
+        text = res_data["choices"][0]["message"]["content"].strip()
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+        return text
+
+def call_github_fallback_chat(chat_history, system_instruction=None):
+    if not GITHUB_TOKEN:
+        raise ValueError("GitHub Token not found")
+        
+    url = "https://models.inference.ai.azure.com/chat/completions"
+    messages = []
+    if system_instruction:
+        messages.append({"role": "system", "content": system_instruction})
+        
+    for msg in chat_history:
+        messages.append({
+            "role": "assistant" if msg["role"] == "model" or msg["role"] == "assistant" else "user",
+            "content": msg["content"]
+        })
+        
+    data = {
+        "messages": messages,
+        "model": "gpt-4o-mini",
+        "temperature": 0.7
+    }
+    
+    req = urllib.request.Request(
+        url,
+        data=json.dumps(data).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {GITHUB_TOKEN}"
+        },
+        method="POST"
+    )
+    
+    with urllib.request.urlopen(req, timeout=12) as response:
+        res_data = json.loads(response.read().decode("utf-8"))
+        return res_data["choices"][0]["message"]["content"].strip()
 
 def generate_interview_questions(role, topic, difficulty, num_questions=5):
     prompt = f"""
@@ -37,6 +110,11 @@ def generate_interview_questions(role, topic, difficulty, num_questions=5):
         return text
     except Exception as e:
         err_msg = str(e)
+        if GITHUB_TOKEN:
+            try:
+                return call_github_fallback(prompt)
+            except:
+                pass
         if "Quota exceeded" in err_msg or "429" in err_msg:
             return json.dumps([
                 f"Rate Limit Alert: The AI is busy due to high traffic. Let's practice API design: how do you design rate-limiting algorithms for high-scale systems?",
@@ -71,6 +149,11 @@ def get_feedback(question, answer):
         return text
     except Exception as e:
         err_msg = str(e)
+        if GITHUB_TOKEN:
+            try:
+                return call_github_fallback(prompt)
+            except:
+                pass
         if "Quota exceeded" in err_msg or "429" in err_msg:
             return json.dumps({
                 "score": 8,
@@ -111,6 +194,11 @@ def analyze_resume(resume_text):
         return text
     except Exception as e:
         err_msg = str(e)
+        if GITHUB_TOKEN:
+            try:
+                return call_github_fallback(prompt)
+            except:
+                pass
         if "Quota exceeded" in err_msg or "429" in err_msg:
             return json.dumps({
                 "ats_score": 75,
@@ -156,6 +244,11 @@ def evaluate_code(problem_title, problem_desc, code, language):
         return text
     except Exception as e:
         err_msg = str(e)
+        if GITHUB_TOKEN:
+            try:
+                return call_github_fallback(prompt)
+            except:
+                pass
         if "Quota exceeded" in err_msg or "429" in err_msg:
             return json.dumps({
                 "correctness": 7, "efficiency": 7, "code_quality": 7, "overall_score": 7,
@@ -184,6 +277,11 @@ def get_hint(question):
         return response.text.strip()
     except Exception as e:
         err_msg = str(e)
+        if GITHUB_TOKEN:
+            try:
+                return call_github_fallback(prompt)
+            except:
+                pass
         if "Quota exceeded" in err_msg or "429" in err_msg:
             return "Hint: Think about system resilience or caching! (API limit reached)"
         return "Hint: Try breaking down the problem into smaller parts."
@@ -221,6 +319,11 @@ def get_assistant_response(chat_history):
         return response.text.strip()
     except Exception as e:
         err_msg = str(e)
+        if GITHUB_TOKEN:
+            try:
+                return call_github_fallback_chat(chat_history, system_instruction)
+            except:
+                pass
         if "Quota exceeded" in err_msg or "429" in err_msg:
             return "Hey there! I am MockMate Companion. The Gemini API is currently hitting high traffic limits, but you should definitely explore the **Coding Round** to practice your algorithms or upload a PDF to the **Resume Analyzer**!"
         return f"Hey! I had trouble reaching my neural core: {err_msg}. You can easily navigate all features using the sidebar on the left!"
