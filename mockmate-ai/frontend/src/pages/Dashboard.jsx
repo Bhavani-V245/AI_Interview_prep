@@ -1,0 +1,194 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { 
+  Trophy, 
+  Target, 
+  Zap, 
+  TrendingUp,
+  Clock,
+  ArrowRight,
+  Sparkles,
+  Calendar,
+  Bell,
+  Search,
+  Activity,
+  Brain,
+  Plus,
+  Loader2
+} from 'lucide-react';
+
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{"name": "Developer"}');
+  const [historyData, setHistoryData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get('/api/interview/history')
+      .then(res => setHistoryData(res.data))
+      .catch(() => setHistoryData({ sessions: [], stats: { total_sessions: 0, avg_score: 0, total_time_hours: 0, total_questions: 0 } }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const stats = historyData ? [
+    { label: 'Sessions', value: String(historyData.stats.total_sessions), icon: <Trophy size={18} />, trend: `+${Math.min(historyData.stats.total_sessions, 5)}`, color: 'text-amber-400', bg: 'bg-amber-400/10', glow: 'shadow-amber-400/20' },
+    { label: 'Avg Score', value: String(historyData.stats.avg_score), icon: <Target size={18} />, trend: '+0.5', color: 'text-emerald-400', bg: 'bg-emerald-400/10', glow: 'shadow-emerald-400/20' },
+    { label: 'Practice Time', value: `${historyData.stats.total_time_hours}h`, icon: <Clock size={18} />, trend: '+1.2', color: 'text-cyan-400', bg: 'bg-cyan-400/10', glow: 'shadow-cyan-400/20' },
+    { label: 'Questions', value: String(historyData.stats.total_questions), icon: <Zap size={18} />, trend: `+${historyData.stats.total_questions}`, color: 'text-indigo-400', bg: 'bg-indigo-400/10', glow: 'shadow-indigo-400/20' },
+  ] : [];
+
+  const recentSessions = historyData?.sessions?.slice(-3).reverse() || [];
+
+  return (
+    <div className="min-h-screen bg-[#050505] text-zinc-400 selection:bg-indigo-500/20">
+      <div className="vibrant-bg opacity-40"></div>
+      
+      <div className="w-full">
+        <header className="h-24 border-b border-white/5 flex items-center justify-between px-12 sticky top-0 bg-black/60 backdrop-blur-2xl z-40">
+          <div className="relative w-full max-w-lg hidden sm:block">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600" size={16} />
+            <input 
+              type="text" 
+              placeholder="Search intelligence labs, interview topics, or career paths..."
+              className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-14 pr-6 text-xs font-bold uppercase tracking-widest focus:border-indigo-500/50 outline-none transition-all placeholder:text-zinc-700"
+            />
+          </div>
+          <div className="flex items-center gap-8">
+            <div className="p-3 text-zinc-500 hover:text-white transition-colors cursor-pointer relative group">
+              <Bell size={24} />
+              <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-[#050505] group-hover:scale-125 transition-transform"></div>
+            </div>
+            <Link to="/interview" className="btn-vibrant py-3.5 px-8 text-xs flex items-center gap-2">
+              <Plus size={16} /> NEW SESSION
+            </Link>
+          </div>
+        </header>
+
+        <div className="p-12 max-w-[1400px] mx-auto">
+          <div className="mb-16">
+            <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-4">
+              <Sparkles size={16} className="animate-pulse" /> Welcome back, {user.name}
+            </div>
+            <h1 className="text-5xl font-black text-white tracking-tighter">Command Center.</h1>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-indigo-500" /></div>
+          ) : (
+            <>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                {stats.map((stat, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="neon-glass p-8 rounded-[40px] group cursor-default"
+                  >
+                    <div className="flex justify-between items-center mb-8">
+                      <div className={`w-14 h-14 rounded-2xl ${stat.bg} flex items-center justify-center ${stat.color} border border-white/5 group-hover:scale-110 transition-transform shadow-lg ${stat.glow}`}>
+                        {stat.icon}
+                      </div>
+                      <div className="text-[11px] font-black text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20 tracking-widest">
+                        {stat.trend}
+                      </div>
+                    </div>
+                    <div className="text-4xl font-black text-white tracking-tighter mb-2">{stat.value}</div>
+                    <div className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-600">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="grid lg:grid-cols-12 gap-10">
+                {/* Recent Activity */}
+                <div className="lg:col-span-8 space-y-10">
+                  <div className="neon-glass rounded-[48px] overflow-hidden">
+                    <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                      <h3 className="font-black text-white text-xl tracking-tighter flex items-center gap-3">
+                        <Activity size={20} className="text-indigo-500" /> Session History
+                      </h3>
+                      <button onClick={() => navigate('/analytics')} className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors">View All</button>
+                    </div>
+                    <div className="divide-y divide-white/5">
+                      {recentSessions.length === 0 ? (
+                        <div className="p-12 text-center text-zinc-700">
+                          <Brain size={40} className="mx-auto mb-4 text-zinc-800" />
+                          <p className="text-sm font-bold">No sessions yet. Start your first interview!</p>
+                        </div>
+                      ) : recentSessions.map((session, i) => (
+                        <div 
+                          key={i} 
+                          onClick={() => navigate(session.type === 'coding' ? '/coding' : '/interview')}
+                          className="p-8 flex items-center justify-between hover:bg-white/[0.03] transition-all group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-6">
+                            <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5 group-hover:border-indigo-500/50 transition-colors">
+                              <Brain size={24} className="text-zinc-400 group-hover:text-white transition-colors" />
+                            </div>
+                            <div>
+                              <div className="text-lg font-black text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{session.role || session.topic}</div>
+                              <div className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mt-1">{session.type} • {session.topic} • {session.date}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-12">
+                            <div className="text-right">
+                              <div className={`text-2xl font-black ${session.score >= 8 ? 'vibrant-text' : 'text-white'}`}>{session.score}/10</div>
+                              <div className={`text-[10px] font-black uppercase tracking-widest mt-1 ${session.score >= 8 ? 'text-emerald-500' : session.score >= 6 ? 'text-amber-500' : 'text-red-500'}`}>
+                                {session.score >= 8 ? 'Excellent' : session.score >= 6 ? 'Good' : 'Needs Work'}
+                              </div>
+                            </div>
+                            <ArrowRight size={20} className="text-zinc-800 group-hover:text-white group-hover:translate-x-2 transition-all" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sidebar Widgets */}
+                <div className="lg:col-span-4 space-y-10">
+                  <div className="neon-glass p-10 rounded-[48px] relative overflow-hidden group animated-border">
+                    <h3 className="text-xs font-black text-white tracking-[0.3em] uppercase mb-10 flex items-center gap-3">
+                      <Sparkles size={18} className="text-indigo-400" /> Quick Actions
+                    </h3>
+                    <div className="space-y-4 relative z-10">
+                      {[
+                        { label: 'AI Interview', path: '/interview', color: 'from-indigo-500 to-cyan-400' },
+                        { label: 'Coding Round', path: '/coding', color: 'from-violet-500 to-pink-500' },
+                        { label: 'Aptitude Quiz', path: '/quiz', color: 'from-emerald-400 to-cyan-400' },
+                        { label: 'Resume Analysis', path: '/resume', color: 'from-amber-400 to-orange-500' },
+                      ].map((item, i) => (
+                        <button key={i} onClick={() => navigate(item.path)} className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl text-left hover:bg-white/10 transition-all group/btn flex items-center justify-between">
+                          <span className="text-sm font-bold text-white">{item.label}</span>
+                          <ArrowRight size={16} className="text-zinc-700 group-hover/btn:text-white group-hover/btn:translate-x-1 transition-all" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="neon-glass p-10 rounded-[48px]">
+                    <h3 className="text-xs font-black text-white tracking-[0.3em] uppercase mb-8 flex items-center gap-3">
+                      <Calendar size={18} className="text-zinc-600" /> Suggested Next
+                    </h3>
+                    <div className="space-y-6">
+                      <Link to="/interview" className="p-6 rounded-[32px] bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all cursor-pointer group block">
+                        <div className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-2">Recommended</div>
+                        <div className="text-lg font-black text-white group-hover:text-indigo-400 transition-colors tracking-tight">System Design Mock</div>
+                        <div className="text-[10px] font-black text-zinc-600 uppercase mt-2 tracking-widest italic">Focus: Scalability</div>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
