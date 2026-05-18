@@ -36,7 +36,15 @@ def _load_sessions(email=None):
                 json.dump([], f)
     try:
         with open(filepath, 'r') as f:
-            return json.load(f)
+            sessions = json.load(f)
+            modified = False
+            for s in sessions:
+                if s.get('type') in ('coding', 'interview', 'voice') and s.get('score', 0) <= 10.0:
+                    s['score'] = round(s['score'] * 10, 2)
+                    modified = True
+            if modified:
+                _save_sessions(sessions, email)
+            return sessions
     except Exception:
         return []
 

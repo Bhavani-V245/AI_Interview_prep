@@ -162,7 +162,7 @@ const Interview = () => {
           type: 'interview',
           role: config.role,
           topic: config.topic,
-          score: Math.round(avgScore * 10) / 10,
+          score: Math.round(avgScore * 10), // Scale to 100-point system
           questions_count: questions.length,
           duration_seconds: timer
         }).catch(() => {});

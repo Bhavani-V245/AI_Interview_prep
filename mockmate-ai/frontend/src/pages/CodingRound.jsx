@@ -214,7 +214,7 @@ const CodingRound = () => {
         type: 'coding',
         role: 'Developer',
         topic: problem.title,
-        score: res.data.overall_score,
+        score: Math.round(res.data.overall_score * 10), // Scale to 100-point system
         questions_count: 1,
         duration_seconds: 1800 - timeLeft
       });

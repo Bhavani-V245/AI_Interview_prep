@@ -145,7 +145,7 @@ const Dashboard = () => {
     
     const consistencyPoints = Math.min(20, sessions.length * 2);
     const avgScore = statsData.avg_score || 0;
-    const scorePoints = Math.min(50, avgScore * 5); // 50% weight on actual analyzed grades
+    const scorePoints = Math.min(50, (avgScore / 100) * 50); // 50% weight on actual analyzed grades (scaled out of 100)
     
     const finalScore = Math.min(100, Math.round(domainPoints + consistencyPoints + scorePoints));
     
@@ -357,9 +357,9 @@ const Dashboard = () => {
                           </div>
                           <div className="flex items-center gap-12">
                             <div className="text-right">
-                              <div className={`text-2xl font-black ${session.score >= 8 ? 'vibrant-text' : 'text-white'}`}>{session.score}/10</div>
-                              <div className={`text-[10px] font-black uppercase tracking-widest mt-1 ${session.score >= 8 ? 'text-emerald-500' : session.score >= 6 ? 'text-amber-500' : 'text-red-500'}`}>
-                                {session.score >= 8 ? 'Excellent' : session.score >= 6 ? 'Good' : 'Needs Work'}
+                              <div className={`text-2xl font-black ${session.score >= 80 ? 'vibrant-text' : 'text-white'}`}>{session.score}/100</div>
+                              <div className={`text-[10px] font-black uppercase tracking-widest mt-1 ${session.score >= 80 ? 'text-emerald-500' : session.score >= 60 ? 'text-amber-500' : 'text-red-500'}`}>
+                                {session.score >= 80 ? 'Excellent' : session.score >= 60 ? 'Good' : 'Needs Work'}
                               </div>
                             </div>
                             <ArrowRight size={20} className="text-zinc-800 group-hover:text-white group-hover:translate-x-2 transition-all" />

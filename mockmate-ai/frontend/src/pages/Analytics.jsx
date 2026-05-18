@@ -88,9 +88,9 @@ const Analytics = () => {
     // 2. Volume & Consistency (Max 20 points) - 2 points per completed round to prove stability
     const consistencyPoints = Math.min(20, sessions.length * 2);
     
-    // 3. Scorecard contribution (Max 50 points) - Based on scorecard average grade (out of 10)
+    // 3. Scorecard contribution (Max 50 points) - Based on scorecard average grade (out of 100)
     const avgScore = stats.avg_score || 0;
-    const scorePoints = Math.min(50, avgScore * 5); // 50% weight on actual analyzed grades
+    const scorePoints = Math.min(50, (avgScore / 100) * 50); // 50% weight on actual analyzed grades (scaled out of 100)
     
     const finalScore = Math.min(100, Math.round(domainPoints + consistencyPoints + scorePoints));
     
@@ -173,7 +173,7 @@ const Analytics = () => {
                 <h2 className="text-2xl font-bold mb-4">AI Prediction: Job Readiness</h2>
                 <div className="text-gray-400 leading-relaxed">
                   <p className="mb-4 text-slate-300">
-                    Based on your <span className="text-white font-extrabold">{stats.total_sessions} sessions</span> with an average scorecard grade of <span className="text-white font-extrabold">{stats.avg_score}/10</span>, your multi-domain readiness is <span className="text-purple-400 font-extrabold">{readiness}%</span>.
+                    Based on your <span className="text-white font-extrabold">{stats.total_sessions} sessions</span> with an average scorecard grade of <span className="text-white font-extrabold">{stats.avg_score}/100</span>, your multi-domain readiness is <span className="text-purple-400 font-extrabold">{readiness}%</span>.
                   </p>
                   <p className="text-xs font-semibold text-zinc-300 bg-white/5 p-4 rounded-2xl border border-white/5 mb-6">
                     💡 <span className="text-purple-300">AI Assessment:</span> {readinessData.advice}
