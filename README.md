@@ -38,6 +38,33 @@ It provides end-to-end interview preparation — from AI-generated questions and
 
 ## ✨ Features
 
+### 👥 AI Group Discussion Prep Room (NEW!)
+- **Mystery AI Topic Generation** — Google Gemini dynamically selects blind, controversial, or analytical group discussion topics (users don't know the topic beforehand)
+- **Simulated Peer Avatars** — 3 intelligent AI peer avatars (e.g. Priyesh, Shreya, Sameer) join the panel, responding with unique arguments, perspectives, and personalities
+- **Stance Selector & Feeds** — Toggle your stance (Agree / Disagree) dynamically and respond to previous arguments in real-time
+- **Speech Transcript Tracker** — Clean UI displaying active participant transcripts and timeline
+- **Multi-Peer Evaluation Scorecard** — Full analytics judging vocabulary depth, structural relevance, teamwork index, and rebuttal quality
+
+### 📈 Placement-Grade AI Job Readiness Assessor (NEW!)
+- **Multi-Domain Scoring Engine** — Instead of calculating readiness by a simple average of just 3 to 5 questions, the engine compiles a true job-placement index (Max 100%).
+- **⚖️ Weighted Indicators** — Compiles unique score points: 60% based on domain-coverage checklist, 20% on consistency, and 20% on grade averages.
+- **💡 AI Advisory Diagnostic Checklist** — The command center shows an active domain checklist (`Monaco Coding IDE`, `Group Discussions`, `Aptitude Assessment`, etc.) highlighting exact gaps and offering targeted career recommendations.
+
+### 🎙️ Speech & Soft Skills Evaluation Coach (NEW!)
+- **🏆 Dual-Metric scorecard** — Every question is graded separately on:
+  - **💻 Technical Concept Depth** (accuracy and conceptual correctness)
+  - **🗣️ Soft Skills & Delivery** (clarity, structural ease, pace, professional vocabulary)
+- **🎙️ Articulation & Speech Advisory Panel** — Qualitative tips analyzing tone, communication style, and confidence
+- **💡 Collapsible Exemplary Answers** — Interactive accordion revealing how a master candidate would reply using the **STAR Method** (Situation, Task, Action, Result)
+
+### 📐 Premium Collapsible Command Sidebar (NEW!)
+- **⚡ Responsive Transitions** — Fluid sidebar width collapses from `w-64` to `w-20` on click
+- **🔄 System-Event Synchronizer** — Main body content adjusts layout dynamically to prevent overlapping content
+- **💡 Hover Tooltips** — Sleek responsive badges visible on hover in collapsed mode
+
+### 🔔 Onboarding Notification Checklist (NEW!)
+- **🔄 Active State Checks** — Onboarding guidance alerts (`💬 AI Mock Interview Done`, `💻 Monaco Coding Practice Recommended`, etc.) dynamically check themselves off automatically once you actually complete that task!
+
 ### 🎯 AI Mock Interviews
 - **Dynamic Question Generation** — Gemini AI generates unique, role-specific questions every session with high temperature randomness (no repeating questions)
 - **Real-Time AI Feedback** — Each answer is evaluated with scores, strengths, areas for improvement, and model answers
