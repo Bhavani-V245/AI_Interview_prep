@@ -80,17 +80,17 @@ const Analytics = () => {
     
     let domainPoints = 0;
     let completedCount = 0;
-    if (domains.interview > 0) { domainPoints += 15; completedCount++; }
-    if (domains.coding > 0) { domainPoints += 15; completedCount++; }
-    if (domains.quiz > 0) { domainPoints += 15; completedCount++; }
-    if (domains.gd > 0) { domainPoints += 15; completedCount++; }
+    if (domains.interview > 0) { domainPoints += 7.5; completedCount++; }
+    if (domains.coding > 0) { domainPoints += 7.5; completedCount++; }
+    if (domains.quiz > 0) { domainPoints += 7.5; completedCount++; }
+    if (domains.gd > 0) { domainPoints += 7.5; completedCount++; }
     
     // 2. Volume & Consistency (Max 20 points) - 2 points per completed round to prove stability
     const consistencyPoints = Math.min(20, sessions.length * 2);
     
-    // 3. Scorecard contribution (Max 20 points) - Based on scorecard average grade (out of 10)
+    // 3. Scorecard contribution (Max 50 points) - Based on scorecard average grade (out of 10)
     const avgScore = stats.avg_score || 0;
-    const scorePoints = Math.min(20, (avgScore / 10) * 20);
+    const scorePoints = Math.min(50, avgScore * 5); // 50% weight on actual analyzed grades
     
     const finalScore = Math.min(100, Math.round(domainPoints + consistencyPoints + scorePoints));
     
