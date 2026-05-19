@@ -35,13 +35,17 @@ import {
   HelpCircle,
   Clock,
   Maximize2,
-  Minimize2
+  Minimize2,
+  ListOrdered,
+  BookOpenCheck,
+  Layout,
+  HelpCircle as QuestionIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
-// 17 Topics Questions Bank (3 high-quality problems per topic = 51 problems!)
+// Massive High-Quality Questions Pool (5 high-quality problems per topic = 85 problems!)
 const PRACTICE_QUESTIONS = {
   "Arrays": [
     {
@@ -87,6 +91,34 @@ const PRACTICE_QUESTIONS = {
       starterCode: {
         javascript: "function maxArea(height) {\n  // Write your code here\n  \n}",
         python: "def maxArea(height):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "arr_4",
+      title: "Merge Sorted Array",
+      difficulty: "Easy",
+      description: "You are given two integer arrays `nums1` and `nums2`, sorted in non-decreasing order, and two integers `m` and `n`, representing the number of elements in `nums1` and `nums2` respectively. Merge `nums2` into `nums1` as one sorted array.",
+      examples: [
+        { input: "nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3", output: "[1,2,2,3,5,6]" }
+      ],
+      constraints: ["nums1.length == m + n", "nums2.length == n", "0 <= m, n <= 200"],
+      starterCode: {
+        javascript: "function merge(nums1, m, nums2, n) {\n  // Write your code here\n  \n}",
+        python: "def merge(nums1, m, nums2, n):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "arr_5",
+      title: "Product of Array Except Self",
+      difficulty: "Medium",
+      description: "Given an integer array `nums`, return an array `answer` such that `answer[i]` is equal to the product of all the elements of `nums` except `nums[i]`. You must write an algorithm that runs in `O(n)` time and without using the division operation.",
+      examples: [
+        { input: "nums = [1,2,3,4]", output: "[24,12,8,6]" }
+      ],
+      constraints: ["2 <= nums.length <= 10^5", "-30 <= nums[i] <= 30"],
+      starterCode: {
+        javascript: "function productExceptSelf(nums) {\n  // Write your code here\n  \n}",
+        python: "def productExceptSelf(nums):\n    # Write your code here\n    pass"
       }
     }
   ],
@@ -134,6 +166,34 @@ const PRACTICE_QUESTIONS = {
         javascript: "function groupAnagrams(strs) {\n  // Write your code here\n  \n}",
         python: "def groupAnagrams(strs):\n    # Write your code here\n    pass"
       }
+    },
+    {
+      id: "str_4",
+      title: "Valid Anagram",
+      difficulty: "Easy",
+      description: "Given two strings `s` and `t`, return `true` if `t` is an anagram of `s`, and `false` otherwise. An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase.",
+      examples: [
+        { input: "s = \"anagram\", t = \"nagaram\"", output: "true" }
+      ],
+      constraints: ["1 <= s.length, t.length <= 5 * 10^4", "s and t consist of lowercase English letters."],
+      starterCode: {
+        javascript: "function isAnagram(s, t) {\n  // Write your code here\n  \n}",
+        python: "def isAnagram(s, t):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "str_5",
+      title: "Longest Common Prefix",
+      difficulty: "Easy",
+      description: "Write a function to find the longest common prefix string amongst an array of strings. If there is no common prefix, return an empty string `\"\"`.",
+      examples: [
+        { input: "strs = [\"flower\",\"flow\",\"flight\"]", output: "\"fl\"" }
+      ],
+      constraints: ["1 <= strs.length <= 200", "0 <= strs[i].length <= 200", "strs[i] consists of only lowercase English letters."],
+      starterCode: {
+        javascript: "function longestCommonPrefix(strs) {\n  // Write your code here\n  \n}",
+        python: "def longestCommonPrefix(strs):\n    # Write your code here\n    pass"
+      }
     }
   ],
   "Linked List": [
@@ -178,6 +238,34 @@ const PRACTICE_QUESTIONS = {
         javascript: "function mergeTwoLists(list1, list2) {\n  // Write your code here\n  \n}",
         python: "def mergeTwoLists(list1, list2):\n    # Write your code here\n    pass"
       }
+    },
+    {
+      id: "ll_4",
+      title: "Remove Nth Node From End of List",
+      difficulty: "Medium",
+      description: "Given the `head` of a linked list, remove the `n`-th node from the end of the list and return its head.",
+      examples: [
+        { input: "head = [1,2,3,4,5], n = 2", output: "[1,2,3,5]" }
+      ],
+      constraints: ["The number of nodes in the list is sz.", "1 <= sz <= 30", "0 <= Node.val <= 100", "1 <= n <= sz"],
+      starterCode: {
+        javascript: "function removeNthFromEnd(head, n) {\n  // Write your code here\n  \n}",
+        python: "def removeNthFromEnd(head, n):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "ll_5",
+      title: "Middle of the Linked List",
+      difficulty: "Easy",
+      description: "Given the `head` of a singly linked list, return the middle node of the linked list. If there are two middle nodes, return the second middle node.",
+      examples: [
+        { input: "head = [1,2,3,4,5]", output: "[3,4,5]" }
+      ],
+      constraints: ["The number of nodes in the list is in the range [1, 100]."],
+      starterCode: {
+        javascript: "function middleNode(head) {\n  // Write your code here\n  \n}",
+        python: "def middleNode(head):\n    # Write your code here\n    pass"
+      }
     }
   ],
   "Stack": [
@@ -185,7 +273,7 @@ const PRACTICE_QUESTIONS = {
       id: "stk_1",
       title: "Valid Parentheses",
       difficulty: "Easy",
-      description: "Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid. An input string is valid if open brackets are closed by the same type of brackets, and open brackets are closed in the correct order.",
+      description: "Given a string `s` containing just the characters `'(''`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid. An input string is valid if open brackets are closed by the same type of brackets, and open brackets are closed in the correct order.",
       examples: [
         { input: "s = \"()\"", output: "true" },
         { input: "s = \"()[]{}\"", output: "true" }
@@ -223,11 +311,9 @@ const PRACTICE_QUESTIONS = {
         javascript: "function evalRPN(tokens) {\n  // Write your code here\n  \n}",
         python: "def evalRPN(tokens):\n    # Write your code here\n    pass"
       }
-    }
-  ],
-  "Queue": [
+    },
     {
-      id: "q_1",
+      id: "stk_4",
       title: "Implement Queue using Stacks",
       difficulty: "Easy",
       description: "Implement a first in first out (FIFO) queue using only two stacks. The implemented queue should support all the functions of a normal queue (`push`, `peek`, `pop`, and `empty`).",
@@ -241,7 +327,23 @@ const PRACTICE_QUESTIONS = {
       }
     },
     {
-      id: "q_2",
+      id: "stk_5",
+      title: "Daily Temperatures",
+      difficulty: "Medium",
+      description: "Given an array of integers `temperatures` represents the daily temperatures, return an array `answer` such that `answer[i]` is the number of days you have to wait after the `i`-th day to get a warmer temperature. If there is no future day for which this is possible, keep `answer[i] == 0` instead.",
+      examples: [
+        { input: "temperatures = [73,74,75,71,69,72,76,73]", output: "[1,1,4,2,1,1,0,0]" }
+      ],
+      constraints: ["1 <= temperatures.length <= 10^5", "30 <= temperatures[i] <= 100"],
+      starterCode: {
+        javascript: "function dailyTemperatures(temperatures) {\n  // Write your code here\n  \n}",
+        python: "def dailyTemperatures(temperatures):\n    # Write your code here\n    pass"
+      }
+    }
+  ],
+  "Queue": [
+    {
+      id: "q_1",
       title: "Number of Recent Calls",
       difficulty: "Easy",
       description: "You have a `RecentCounter` class which counts the number of recent requests within a certain time frame. Implement the class to count requests in the last 3000 milliseconds.",
@@ -255,7 +357,7 @@ const PRACTICE_QUESTIONS = {
       }
     },
     {
-      id: "q_3",
+      id: "q_2",
       title: "Design Circular Queue",
       difficulty: "Medium",
       description: "Design your implementation of the circular queue. The circular queue is a linear data structure in which the operations are performed based on FIFO (First In First Out) principle and the last position is connected back to the first position to make a circle.",
@@ -266,6 +368,48 @@ const PRACTICE_QUESTIONS = {
       starterCode: {
         javascript: "class MyCircularQueue {\n  constructor(k) {}\n  enQueue(value) {}\n  deQueue() {}\n  Front() {}\n  Rear() {}\n  isEmpty() {}\n  isFull() {}\n}",
         python: "class MyCircularQueue:\n    def __init__(self, k: int):\n        pass\n    def enQueue(self, value: int) -> bool:\n        pass\n    def deQueue(self) -> bool:\n        pass\n    def Front(self) -> int:\n        pass\n    def Rear(self) -> int:\n        pass\n    def isEmpty(self) -> bool:\n        pass\n    def isFull(self) -> bool:\n        pass"
+      }
+    },
+    {
+      id: "q_3",
+      title: "Implement Stack using Queues",
+      difficulty: "Easy",
+      description: "Implement a last-in-first-out (LIFO) stack using only queues. The implemented stack should support all the normal stack operations (`push`, `top`, `pop`, and `empty`).",
+      examples: [
+        { input: "[\"MyStack\", \"push\", \"push\", \"top\", \"pop\", \"empty\"]", output: "[null, null, null, 2, 2, false]" }
+      ],
+      constraints: ["1 <= x <= 9", "At most 100 calls will be made to push, pop, top, and empty."],
+      starterCode: {
+        javascript: "class MyStack {\n  constructor() {}\n  push(x) {}\n  pop() {}\n  top() {}\n  empty() {}\n}",
+        python: "class MyStack:\n    def __init__(self):\n        pass\n    def push(self, x: int) -> None:\n        pass\n    def pop(self) -> int:\n        pass\n    def top(self) -> int:\n        pass\n    def empty(self) -> bool:\n        pass"
+      }
+    },
+    {
+      id: "q_4",
+      title: "Moving Average from Data Stream",
+      difficulty: "Easy",
+      description: "Given a stream of integers and a window size, calculate the moving average of all integers in the sliding window.",
+      examples: [
+        { input: "[\"MovingAverage\", \"next\", \"next\", \"next\"]", output: "[null, 1.0, 5.5, 4.66]" }
+      ],
+      constraints: ["1 <= size <= 1000", "-10^5 <= val <= 10^5"],
+      starterCode: {
+        javascript: "class MovingAverage {\n  constructor(size) {}\n  next(val) {}\n}",
+        python: "class MovingAverage:\n    def __init__(self, size: int):\n        pass\n    def next(self, val: int) -> float:\n        pass"
+      }
+    },
+    {
+      id: "q_5",
+      title: "Task Scheduler",
+      difficulty: "Medium",
+      description: "Given a characters array `tasks`, representing the tasks a CPU needs to do, where each letter represents a different task. Tasks could be done in any order. Each task is done in one unit of time. For each unit of time, the CPU could complete either one task or just be idle. However, there is a non-negative integer `n` that represents the cooldown period between two same tasks. Return the least number of units of times that the CPU will take to finish all the given tasks.",
+      examples: [
+        { input: "tasks = [\"A\",\"A\",\"A\",\"B\",\"B\",\"B\"], n = 2", output: "8 (A -> B -> idle -> A -> B -> idle -> A -> B)" }
+      ],
+      constraints: ["1 <= tasks.length <= 10^4", "0 <= n <= 100", "tasks[i] consists of uppercase English letters."],
+      starterCode: {
+        javascript: "function leastInterval(tasks, n) {\n  // Write your code here\n  \n}",
+        python: "def leastInterval(tasks, n):\n    # Write your code here\n    pass"
       }
     }
   ],
@@ -311,6 +455,34 @@ const PRACTICE_QUESTIONS = {
         javascript: "function levelOrder(root) {\n  // Write your code here\n  \n}",
         python: "def levelOrder(root):\n    # Write your code here\n    pass"
       }
+    },
+    {
+      id: "t_4",
+      title: "Same Tree",
+      difficulty: "Easy",
+      description: "Given the roots of two binary trees `p` and `q`, write a function to check if they are the same or not. Two binary trees are considered the same if they are structurally identical, and the nodes have the same value.",
+      examples: [
+        { input: "p = [1,2,3], q = [1,2,3]", output: "true" }
+      ],
+      constraints: ["The number of nodes in both trees is in range [0, 100]."],
+      starterCode: {
+        javascript: "function isSameTree(p, q) {\n  // Write your code here\n  \n}",
+        python: "def isSameTree(p, q):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "t_5",
+      title: "Path Sum",
+      difficulty: "Easy",
+      description: "Given the `root` of a binary tree and an integer `targetSum`, return `true` if the tree has a root-to-leaf path such that adding up all the values along the path equals `targetSum`.",
+      examples: [
+        { input: "root = [5,4,8,11,null,13,4], targetSum = 22", output: "true" }
+      ],
+      constraints: ["The number of nodes in the tree is in range [0, 5000].", "-1000 <= Node.val <= 1000"],
+      starterCode: {
+        javascript: "function hasPathSum(root, targetSum) {\n  // Write your code here\n  \n}",
+        python: "def hasPathSum(root, targetSum):\n    # Write your code here\n    pass"
+      }
     }
   ],
   "Graphs": [
@@ -345,7 +517,7 @@ const PRACTICE_QUESTIONS = {
     {
       id: "g_3",
       title: "Course Schedule",
-      difficulty: "Hard",
+      difficulty: "Medium",
       description: "There are a total of `numCourses` courses you have to take, labeled from `0` to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [ai, bi]` indicates that you must take course `bi` first if you want to take course `ai`. Return `true` if you can finish all courses. Otherwise, return `false`.",
       examples: [
         { input: "numCourses = 2, prerequisites = [[1,0]]", output: "true" },
@@ -355,6 +527,34 @@ const PRACTICE_QUESTIONS = {
       starterCode: {
         javascript: "function canFinish(numCourses, prerequisites) {\n  // Write your code here\n  \n}",
         python: "def canFinish(numCourses, prerequisites):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "g_4",
+      title: "Flood Fill",
+      difficulty: "Easy",
+      description: "An image is represented by an `m x n` integer grid `image` where `image[i][j]` represents the pixel value of the image. You are also given three integers `sr`, `sc`, and `color`. You should perform a flood fill on the image starting from the pixel `image[sr][sc]`.",
+      examples: [
+        { input: "image = [[1,1,1],[1,1,0],[1,0,1]], sr = 1, sc = 1, color = 2", output: "[[2,2,2],[2,2,0],[2,0,1]]" }
+      ],
+      constraints: ["m == image.length", "n == image[i].length", "1 <= m, n <= 50", "0 <= sr < m", "0 <= sc < n"],
+      starterCode: {
+        javascript: "function floodFill(image, sr, sc, color) {\n  // Write your code here\n  \n}",
+        python: "def floodFill(image, sr, sc, color):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "g_5",
+      title: "Pacific Atlantic Water Flow",
+      difficulty: "Hard",
+      description: "There is an `m x n` rectangular island that borders both the Pacific Ocean and Atlantic Ocean. The Pacific Ocean touches the island's left and top edges, and the Atlantic Ocean touches the island's right and bottom edges. Return a 2D list of grid coordinates where rainwater can flow to both oceans.",
+      examples: [
+        { input: "heights = [[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1]]", output: "[[0,4],[1,3],[1,4],[2,2]]" }
+      ],
+      constraints: ["m == heights.length", "n == heights[r].length", "1 <= m, n <= 200"],
+      starterCode: {
+        javascript: "function pacificAtlantic(heights) {\n  // Write your code here\n  \n}",
+        python: "def pacificAtlantic(heights):\n    # Write your code here\n    pass"
       }
     }
   ],
@@ -400,6 +600,34 @@ const PRACTICE_QUESTIONS = {
       starterCode: {
         javascript: "function longestCommonSubsequence(text1, text2) {\n  // Write your code here\n  \n}",
         python: "def longestCommonSubsequence(text1, text2):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "dp_4",
+      title: "House Robber",
+      difficulty: "Medium",
+      description: "You are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed, the only constraint stopping you from robbing each of them is that adjacent houses have security systems connected. Return the maximum amount of money you can rob tonight without alerting the police.",
+      examples: [
+        { input: "nums = [1,2,3,1]", output: "4 (rob house 1 and 3)" }
+      ],
+      constraints: ["1 <= nums.length <= 100", "0 <= nums[i] <= 400"],
+      starterCode: {
+        javascript: "function rob(nums) {\n  // Write your code here\n  \n}",
+        python: "def rob(nums):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "dp_5",
+      title: "Unique Paths",
+      difficulty: "Medium",
+      description: "There is a robot on an `m x n` grid. The robot is initially located at the top-left corner `(0, 0)`. The robot tries to move to the bottom-right corner `(m - 1, n - 1)`. The robot can only move either down or right at any point in time. Return the number of possible unique paths.",
+      examples: [
+        { input: "m = 3, n = 7", output: "28" }
+      ],
+      constraints: ["1 <= m, n <= 100"],
+      starterCode: {
+        javascript: "function uniquePaths(m, n) {\n  // Write your code here\n  \n}",
+        python: "def uniquePaths(m, n):\n    # Write your code here\n    pass"
       }
     }
   ],
@@ -447,6 +675,34 @@ const PRACTICE_QUESTIONS = {
         javascript: "function permute(nums) {\n  // Write your code here recursively\n  \n}",
         python: "def permute(nums):\n    # Write your code here recursively\n    pass"
       }
+    },
+    {
+      id: "rec_4",
+      title: "Subsets",
+      difficulty: "Medium",
+      description: "Given an integer array `nums` of unique elements, return all possible subsets (the power set). The solution set must not contain duplicate subsets. Return the solution in any order.",
+      examples: [
+        { input: "nums = [1,2,3]", output: "[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]" }
+      ],
+      constraints: ["1 <= nums.length <= 10", "-10 <= nums[i] <= 10", "All elements are unique."],
+      starterCode: {
+        javascript: "function subsets(nums) {\n  // Write your code here recursively\n  \n}",
+        python: "def subsets(nums):\n    # Write your code here recursively\n    pass"
+      }
+    },
+    {
+      id: "rec_5",
+      title: "Generate Parentheses",
+      difficulty: "Medium",
+      description: "Given `n` pairs of parentheses, write a function to generate all combinations of well-formed parentheses.",
+      examples: [
+        { input: "n = 3", output: "[\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]" }
+      ],
+      constraints: ["1 <= n <= 8"],
+      starterCode: {
+        javascript: "function generateParenthesis(n) {\n  // Write your code here recursively\n  \n}",
+        python: "def generateParenthesis(n):\n    # Write your code here recursively\n    pass"
+      }
     }
   ],
   "Sorting": [
@@ -490,6 +746,34 @@ const PRACTICE_QUESTIONS = {
       starterCode: {
         javascript: "function sortColors(nums) {\n  // Write your code here in-place\n  \n}",
         python: "def sortColors(nums):\n    # Write your code here in-place\n    pass"
+      }
+    },
+    {
+      id: "sort_4",
+      title: "Merge Intervals",
+      difficulty: "Medium",
+      description: "Given an array of `intervals` where `intervals[i] = [starti, endi]`, merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.",
+      examples: [
+        { input: "intervals = [[1,3],[2,6],[8,10],[15,18]]", output: "[[1,6],[8,10],[15,18]]" }
+      ],
+      constraints: ["1 <= intervals.length <= 10^4", "intervals[i].length == 2"],
+      starterCode: {
+        javascript: "function mergeIntervals(intervals) {\n  // Write your code here\n  \n}",
+        python: "def mergeIntervals(intervals):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "sort_5",
+      title: "Majority Element",
+      difficulty: "Easy",
+      description: "Given an array `nums` of size `n`, return the majority element. The majority element is the element that appears more than `⌊n / 2⌋` times. You may assume that the majority element always exists in the array.",
+      examples: [
+        { input: "nums = [3,2,3]", output: "3" }
+      ],
+      constraints: ["n == nums.length", "1 <= n <= 5 * 10^4", "-10^9 <= nums[i] <= 10^9"],
+      starterCode: {
+        javascript: "function majorityElement(nums) {\n  // Write your code here\n  \n}",
+        python: "def majorityElement(nums):\n    # Write your code here\n    pass"
       }
     }
   ],
@@ -535,6 +819,34 @@ const PRACTICE_QUESTIONS = {
         javascript: "function searchRange(nums, target) {\n  // Write your code here\n  \n}",
         python: "def searchRange(nums, target):\n    # Write your code here\n    pass"
       }
+    },
+    {
+      id: "srch_4",
+      title: "Search a 2D Matrix",
+      difficulty: "Medium",
+      description: "You are given an `m x n` integer matrix `matrix` with the following two properties:\n1. Each row is sorted in non-decreasing order.\n2. The first integer of each row is greater than the last integer of the previous row.\nGiven an integer `target`, return `true` if `target` is in the matrix or `false` otherwise.",
+      examples: [
+        { input: "matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3", output: "true" }
+      ],
+      constraints: ["m == matrix.length", "n == matrix[i].length", "1 <= m, n <= 100", "-10^4 <= matrix[i][j], target <= 10^4"],
+      starterCode: {
+        javascript: "function searchMatrix(matrix, target) {\n  // Write your code here\n  \n}",
+        python: "def searchMatrix(matrix, target):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "srch_5",
+      title: "First Bad Version",
+      difficulty: "Easy",
+      description: "You are a product manager and currently leading a team to develop a new product. Unfortunately, the latest version of your product fails the quality check. Since each version is developed based on the previous version, all the versions after a bad version are also bad. Find the first bad version using a binary partition.",
+      examples: [
+        { input: "n = 5, bad = 4", output: "4" }
+      ],
+      constraints: ["1 <= bad <= n <= 2^31 - 1"],
+      starterCode: {
+        javascript: "function solution(isBadVersion) {\n  return function(n) {\n    // Write your search logic here\n  };\n}",
+        python: "def firstBadVersion(n, isBadVersion):\n    # Write your search logic here\n    pass"
+      }
     }
   ],
   "HashMap": [
@@ -569,16 +881,44 @@ const PRACTICE_QUESTIONS = {
     },
     {
       id: "hm_3",
-      title: "Contains Duplicate II",
+      title: "Contains Duplicate",
       difficulty: "Easy",
-      description: "Given an integer array `nums` and an integer `k`, return `true` if there are two distinct indices `i` and `j` in the array such that `nums[i] == nums[j]` and `abs(i - j) <= k`.",
+      description: "Given an integer array `nums`, return `true` if any value appears at least twice in the array, and return `false` if every element is distinct.",
       examples: [
-        { input: "nums = [1,2,3,1], k = 3", output: "true" }
+        { input: "nums = [1,2,3,1]", output: "true" }
       ],
-      constraints: ["1 <= nums.length <= 10^5", "-10^9 <= nums[i] <= 10^9", "0 <= k <= 10^5"],
+      constraints: ["1 <= nums.length <= 10^5", "-10^9 <= nums[i] <= 10^9"],
       starterCode: {
-        javascript: "function containsNearbyDuplicate(nums, k) {\n  // Write your code here\n  \n}",
-        python: "def containsNearbyDuplicate(nums, k):\n    # Write your code here\n    pass"
+        javascript: "function containsDuplicate(nums) {\n  // Write your code here\n  \n}",
+        python: "def containsDuplicate(nums):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "hm_4",
+      title: "Intersection of Two Arrays",
+      difficulty: "Easy",
+      description: "Given two integer arrays `nums1` and `nums2`, return an array of their intersection. Each element in the result must be unique and you may return the result in any order.",
+      examples: [
+        { input: "nums1 = [1,2,2,1], nums2 = [2,2]", output: "[2]" }
+      ],
+      constraints: ["1 <= nums1.length, nums2.length <= 1000", "0 <= nums1[i], nums2[i] <= 1000"],
+      starterCode: {
+        javascript: "function intersection(nums1, nums2) {\n  // Write your code here\n  \n}",
+        python: "def intersection(nums1, nums2):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "hm_5",
+      title: "Top K Frequent Elements",
+      difficulty: "Medium",
+      description: "Given an integer array `nums` and an integer `k`, return the `k` most frequent elements. You may return the answer in any order.",
+      examples: [
+        { input: "nums = [1,1,1,2,2,3], k = 2", output: "[1,2]" }
+      ],
+      constraints: ["1 <= nums.length <= 10^5", "k is in the range [1, the number of unique elements in the array]."],
+      starterCode: {
+        javascript: "function topKFrequent(nums, k) {\n  // Write your code here\n  \n}",
+        python: "def topKFrequent(nums, k):\n    # Write your code here\n    pass"
       }
     }
   ],
@@ -625,6 +965,34 @@ const PRACTICE_QUESTIONS = {
         javascript: "function findMaxAverage(nums, k) {\n  // Write your code here\n  \n}",
         python: "def findMaxAverage(nums, k):\n    # Write your code here\n    pass"
       }
+    },
+    {
+      id: "sw_4",
+      title: "Longest Repeating Character Replacement",
+      difficulty: "Medium",
+      description: "You are given a string `s` and an integer `k`. You can choose any character of the string and change it to any other uppercase English character. You can perform this operation at most `k` times. Return the length of the longest substring containing the same letter you can get after performing the above operations.",
+      examples: [
+        { input: "s = \"ABAB\", k = 2", output: "4 (replace B with A to get \"AAAA\")" }
+      ],
+      constraints: ["1 <= s.length <= 10^5", "0 <= k <= s.length", "s consists of only uppercase English letters."],
+      starterCode: {
+        javascript: "function characterReplacement(s, k) {\n  // Write your code here\n  \n}",
+        python: "def characterReplacement(s, k):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "sw_5",
+      title: "Sliding Window Maximum",
+      difficulty: "Hard",
+      description: "You are given an array of integers `nums`, there is a sliding window of size `k` which is moving from the very left of the array to the very right. You can only see the `k` numbers in the window. Each time the sliding window moves right by one position. Return the max sliding window values array.",
+      examples: [
+        { input: "nums = [1,3,-1,-3,5,3,6,7], k = 3", output: "[3,3,5,5,6,7]" }
+      ],
+      constraints: ["1 <= nums.length <= 10^5", "-10^4 <= nums[i] <= 10^4", "1 <= k <= nums.length"],
+      starterCode: {
+        javascript: "function maxSlidingWindow(nums, k) {\n  // Write your code here\n  \n}",
+        python: "def maxSlidingWindow(nums, k):\n    # Write your code here\n    pass"
+      }
     }
   ],
   "Greedy": [
@@ -669,6 +1037,34 @@ const PRACTICE_QUESTIONS = {
       starterCode: {
         javascript: "function findContentChildren(g, s) {\n  // Write your code here\n  \n}",
         python: "def findContentChildren(g, s):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "grd_4",
+      title: "Partition Labels",
+      difficulty: "Medium",
+      description: "You are given a string `s`. We want to partition the string into as many parts as possible so that each letter appears in at most one part. Return a list of integers representing the size of these parts.",
+      examples: [
+        { input: "s = \"ababcbacadefegdehijhklij\"", output: "[9,7,8]" }
+      ],
+      constraints: ["1 <= s.length <= 500", "s consists of lowercase English letters."],
+      starterCode: {
+        javascript: "function partitionLabels(s) {\n  // Write your code here\n  \n}",
+        python: "def partitionLabels(s):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "grd_5",
+      title: "Lemonade Change",
+      difficulty: "Easy",
+      description: "At a lemonade stand, each lemonade costs `$5`. Customers are standing in a queue to buy from you and order one at a time. Each customer will only buy one lemonade and pay with either a `$5`, `$10`, or `$20` bill. Return `true` if you can provide every customer with correct change, or `false` otherwise.",
+      examples: [
+        { input: "bills = [5,5,5,10,20]", output: "true" }
+      ],
+      constraints: ["1 <= bills.length <= 10^5", "bills[i] is either 5, 10, or 20."],
+      starterCode: {
+        javascript: "function lemonadeChange(bills) {\n  // Write your code here\n  \n}",
+        python: "def lemonadeChange(bills):\n    # Write your code here\n    pass"
       }
     }
   ],
@@ -716,6 +1112,34 @@ const PRACTICE_QUESTIONS = {
         javascript: "function countBits(n) {\n  // Write your code here\n  \n}",
         python: "def countBits(n):\n    # Write your code here\n    pass"
       }
+    },
+    {
+      id: "bm_4",
+      title: "Reverse Bits",
+      difficulty: "Easy",
+      description: "Reverse bits of a given 32 bits unsigned integer recursively or iteratively and return the resulting number.",
+      examples: [
+        { input: "n = 43261596 (binary: 00000010100101000001111010011100)", output: "964176192" }
+      ],
+      constraints: ["The input must be a binary 32-bit unsigned integer."],
+      starterCode: {
+        javascript: "function reverseBits(n) {\n  // Write your code here\n  \n}",
+        python: "def reverseBits(n):\n    # Write your code here\n    pass"
+      }
+    },
+    {
+      id: "bm_5",
+      title: "Missing Number",
+      difficulty: "Easy",
+      description: "Given an array `nums` containing `n` distinct numbers in the range `[0, n]`, return the only number in the range that is missing from the array.",
+      examples: [
+        { input: "nums = [3,0,1]", output: "2" }
+      ],
+      constraints: ["n == nums.length", "1 <= n <= 10^4", "0 <= nums[i] <= n", "All the numbers of nums are unique."],
+      starterCode: {
+        javascript: "function missingNumber(nums) {\n  // Write your code here\n  \n}",
+        python: "def missingNumber(nums):\n    # Write your code here\n    pass"
+      }
     }
   ],
   "OOPs": [
@@ -760,6 +1184,34 @@ const PRACTICE_QUESTIONS = {
         javascript: "class FoodRatings {\n  constructor(foods, cuisines, ratings) {}\n  changeRating(food, newRating) {}\n  highestRated(cuisine) {}\n}",
         python: "class FoodRatings:\n    def __init__(self, foods: List[str], cuisines: List[str], ratings: List[int]):\n        pass\n    def changeRating(self, food: str, newRating: int) -> None:\n        pass\n    def highestRated(self, cuisine: str) -> str:\n        pass"
       }
+    },
+    {
+      id: "oop_4",
+      title: "Design Underground System",
+      difficulty: "Medium",
+      description: "An underground railway system is keeping track of customer travel times between different stations. They are using this data to calculate the average time it takes to travel between stations. Implement the `UndergroundSystem` class.",
+      examples: [
+        { input: "[\"UndergroundSystem\",\"checkIn\",\"checkOut\",\"getAverageTime\"]", output: "[null,null,null,12.0]" }
+      ],
+      constraints: ["At most 2 * 10^4 calls will be made to checkIn/checkOut/getAverageTime."],
+      starterCode: {
+        javascript: "class UndergroundSystem {\n  constructor() {}\n  checkIn(id, stationName, t) {}\n  checkOut(id, stationName, t) {}\n  getAverageTime(startStation, endStation) {}\n}",
+        python: "class UndergroundSystem:\n    def __init__(self):\n        pass\n    def checkIn(self, id: int, stationName: str, t: int) -> None:\n        pass\n    def checkOut(self, id: int, stationName: str, t: int) -> None:\n        pass\n    def getAverageTime(self, startStation: str, endStation: str) -> float:\n        pass"
+      }
+    },
+    {
+      id: "oop_5",
+      title: "Design Hit Counter",
+      difficulty: "Medium",
+      description: "Design a hit counter which counts the number of hits received in the past 5 minutes (i.e., past 300 seconds). Implement the `HitCounter` class.",
+      examples: [
+        { input: "[\"HitCounter\", \"hit\", \"hit\", \"hit\", \"getHits\"]", output: "[null, null, null, null, 3]" }
+      ],
+      constraints: ["At most 10^4 calls will be made to methods.", "Time is strictly increasing."],
+      starterCode: {
+        javascript: "class HitCounter {\n  constructor() {}\n  hit(timestamp) {}\n  getHits(timestamp) {}\n}",
+        python: "class HitCounter:\n    def __init__(self):\n        pass\n    def hit(self, timestamp: int) -> None:\n        pass\n    def getHits(self, timestamp: int) -> int:\n        pass"
+      }
     }
   ],
   "SQL": [
@@ -800,6 +1252,34 @@ const PRACTICE_QUESTIONS = {
         { input: "Table: Employee (id, name, salary, managerId)", output: "SELECT e.name as Employee FROM Employee e JOIN Employee m ON e.managerId = m.id WHERE e.salary > m.salary" }
       ],
       constraints: ["Self JOIN standard matching."],
+      starterCode: {
+        javascript: "-- Write your SQL query here\nSELECT ",
+        python: "# Write your SQL query here\nquery = \"\"\"SELECT \"\"\""
+      }
+    },
+    {
+      id: "sql_4",
+      title: "Customers Who Never Order",
+      difficulty: "Easy",
+      description: "Write a SQL query to report all customers who never order anything. Return the name column renamed as `Customers`.",
+      examples: [
+        { input: "Tables: Customers (id, name), Orders (id, customerId)", output: "SELECT name as Customers FROM Customers WHERE id NOT IN (SELECT customerId FROM Orders)" }
+      ],
+      constraints: ["Subqueries or anti-joins allowed."],
+      starterCode: {
+        javascript: "-- Write your SQL query here\nSELECT ",
+        python: "# Write your SQL query here\nquery = \"\"\"SELECT \"\"\""
+      }
+    },
+    {
+      id: "sql_5",
+      title: "Duplicate Emails",
+      difficulty: "Easy",
+      description: "Write a SQL query to report all duplicate emails in a table `Person`.",
+      examples: [
+        { input: "Table: Person (id, email)", output: "SELECT email FROM Person GROUP BY email HAVING COUNT(email) > 1" }
+      ],
+      constraints: ["Aggregating email grouping."],
       starterCode: {
         javascript: "-- Write your SQL query here\nSELECT ",
         python: "# Write your SQL query here\nquery = \"\"\"SELECT \"\"\""
@@ -859,7 +1339,6 @@ const CodingPractice = () => {
     localStorage.setItem('solved_practice_questions', JSON.stringify(solvedList));
     localStorage.setItem('unsolved_repeated_questions', JSON.stringify(unsolvedRepeatedList));
     
-    // Auto-update streak if not modified recently
     const lastPractice = localStorage.getItem('last_practice_date');
     const today = new Date().toDateString();
     if (lastPractice !== today && solvedList.length > 0) {
@@ -918,34 +1397,35 @@ const CodingPractice = () => {
     };
   })();
 
-  // Core Practice Algorithm: Selecting/Triggering a Challenge for a Topic
+  // Select Topic View - Show Questions List inside topic first
   const handleSelectTopic = (topicName) => {
-    const pool = PRACTICE_QUESTIONS[topicName] || [];
+    setSelectedTopic(topicName);
+    setActiveQuestion(null);
+  };
+
+  // Dynamic Randomized Solved Isolation Logic for "Pick Random Unsolved" Button
+  const handlePickRandomUnsolved = () => {
+    const pool = PRACTICE_QUESTIONS[selectedTopic] || [];
     
-    // 1. Separate solved questions out immediately
+    // 1. Separate unsolved questions
     const unsolvedInPool = pool.filter(q => !solvedList.includes(q.id));
     
-    // 2. IMPORTANT LOGIC CHECK:
-    // If user previously failed an unsolved question in this topic, prioritize that exact question first!
+    // 2. IMPORTANT LOGIC CHECK: Prioritize failed unsolved questions
     const failedQuestionsInTopic = pool.filter(q => unsolvedRepeatedList.includes(q.id) && !solvedList.includes(q.id));
     
     let selectedQ = null;
     
     if (failedQuestionsInTopic.length > 0) {
-      // Prioritize that failed challenge!
       selectedQ = failedQuestionsInTopic[Math.floor(Math.random() * failedQuestionsInTopic.length)];
       toast.info(`Retrying your active review challenge: "${selectedQ.title}"!`);
     } else if (unsolvedInPool.length > 0) {
-      // Select a completely random unsolved challenge
       selectedQ = unsolvedInPool[Math.floor(Math.random() * unsolvedInPool.length)];
     } else if (pool.length > 0) {
-      // ALL challenges are solved! Pick a random solved one to practice again
       selectedQ = pool[Math.floor(Math.random() * pool.length)];
-      toast.success("💡 You have already solved all challenges here! Initiating replay mode.");
+      toast.success("💡 Replaying solved challenge.");
     }
     
     if (selectedQ) {
-      setSelectedTopic(topicName);
       setActiveQuestion(selectedQ);
     }
   };
@@ -971,22 +1451,17 @@ const CodingPractice = () => {
       const evalData = response.data;
       setEvaluation(evalData);
       
-      // Determine solved criteria (correctness >= 7.0/10)
       if (evalData.correctness >= 7 || evalData.overall_score >= 7) {
         setConsoleOutput(`> SUCCESS! Overall Score: ${evalData.overall_score}/10\n> Correctness: ${evalData.correctness}/10\n✔ Algorithm solved successfully! Practice progress saved.`);
         
-        // Add to solved list if not already there
         if (!solvedList.includes(activeQuestion.id)) {
           setSolvedList(prev => [...prev, activeQuestion.id]);
         }
-        
-        // Remove from failed/retry repeats list immediately
         setUnsolvedRepeatedList(prev => prev.filter(id => id !== activeQuestion.id));
         toast.success(`🎉 Excellent! You solved "${activeQuestion.title}" successfully!`);
       } else {
         setConsoleOutput(`> FAILED. Overall Score: ${evalData.overall_score}/10\n> Correctness: ${evalData.correctness}/10\n❌ Solution did not meet target correctness criteria (>=7.0). This challenge has been marked for repetition.`);
         
-        // Add to failed repeat queue so it is repeated until solved!
         if (!unsolvedRepeatedList.includes(activeQuestion.id) && !solvedList.includes(activeQuestion.id)) {
           setUnsolvedRepeatedList(prev => [...prev, activeQuestion.id]);
         }
@@ -1001,6 +1476,10 @@ const CodingPractice = () => {
     }
   };
 
+  const selectedTopicMeta = TOPICS_META.find(t => t.name === selectedTopic);
+  const selectedTopicQuestions = PRACTICE_QUESTIONS[selectedTopic] || [];
+  const topicProgress = selectedTopic ? getTopicProgress(selectedTopic) : null;
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#030712] text-slate-100 relative">
       <div className="digital-grid" />
@@ -1008,20 +1487,20 @@ const CodingPractice = () => {
 
       {/* Main Container Layout */}
       <AnimatePresence mode="wait">
-        {!activeQuestion ? (
-          // TOPICS DASHBOARD VIEW
+        {!selectedTopic ? (
+          // VIEW 1: OVERALL TOPICS DASHBOARD GRID
           <motion.div 
+            key="dashboard"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             className="flex-1 overflow-y-auto p-8 lg:p-12 custom-scrollbar"
           >
-            {/* Header dashboard stats */}
             <div className="max-w-7xl mx-auto space-y-12">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                   <h1 className="text-3xl lg:text-4xl font-black tracking-tight flex items-center gap-3">
-                    <Sparkles className="text-indigo-400" />
+                    <Sparkles className="text-indigo-400 animate-pulse" />
                     <span className="vibrant-text">Practice Arena</span>
                   </h1>
                   <p className="text-zinc-500 text-sm mt-2">Master data structures & algorithms through automated AI review sandbox sessions.</p>
@@ -1041,7 +1520,6 @@ const CodingPractice = () => {
 
               {/* Global Progress Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Total completion bar */}
                 <div className="md:col-span-2 neon-glass p-8 rounded-[36px] flex flex-col justify-between">
                   <div>
                     <h3 className="text-xs font-black tracking-wider uppercase text-zinc-500 mb-2">Overall Completion</h3>
@@ -1058,19 +1536,18 @@ const CodingPractice = () => {
                   </div>
                 </div>
 
-                {/* Difficulty Breakdowns */}
                 {[
-                  { label: "Easy Challenges", count: globalStats.easy, total: 27, color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
-                  { label: "Medium Challenges", count: globalStats.medium, total: 18, color: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20" },
-                  { label: "Hard Challenges", count: globalStats.hard, total: 6, color: "text-red-400 bg-red-500/10 border-red-500/20" }
+                  { label: "Easy Challenges", count: globalStats.easy, total: 47, color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" },
+                  { label: "Medium Challenges", count: globalStats.medium, total: 31, color: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20" },
+                  { label: "Hard Challenges", count: globalStats.hard, total: 7, color: "text-red-400 bg-red-500/10 border-red-500/20" }
                 ].map((dif, idx) => (
                   <div key={idx} className="neon-glass p-8 rounded-[36px] flex flex-col justify-between">
                     <div>
                       <h3 className="text-xs font-black tracking-wider uppercase text-zinc-500 mb-2">{dif.label}</h3>
-                      <div className="text-3xl font-black text-white">{dif.count} <span className="text-xs text-zinc-500">solved</span></div>
+                      <div className="text-3xl font-black text-white">{dif.count} <span className="text-xs text-zinc-500">/ {dif.total}</span></div>
                     </div>
                     <div className={`mt-4 px-3 py-1.5 rounded-2xl border text-center text-xs font-black uppercase tracking-wider ${dif.color}`}>
-                      Progress: {Math.round((dif.count / dif.total) * 100)}%
+                      Progress: {dif.total > 0 ? Math.round((dif.count / dif.total) * 100) : 0}%
                     </div>
                   </div>
                 ))}
@@ -1114,7 +1591,6 @@ const CodingPractice = () => {
                           <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{topic.desc}</p>
                         </div>
 
-                        {/* Mini progress tracker bar */}
                         <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
                           <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{progress.solvedCount} / {progress.totalCount} SOLVED</span>
                           <div className="w-16 bg-white/5 h-1 rounded-full overflow-hidden">
@@ -1128,9 +1604,138 @@ const CodingPractice = () => {
               </div>
             </div>
           </motion.div>
+        ) : !activeQuestion ? (
+          // VIEW 2: TOPIC SPECIFIC QUESTION LIST VIEW
+          <motion.div
+            key="question-list"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            className="flex-1 overflow-y-auto p-8 lg:p-12 custom-scrollbar"
+          >
+            <div className="max-w-6xl mx-auto space-y-8">
+              {/* Back & Title Header */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => setSelectedTopic(null)}
+                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-xl bg-gradient-to-br ${selectedTopicMeta.color} text-white`}>
+                        {selectedTopicMeta.icon}
+                      </div>
+                      <h1 className="text-2xl lg:text-3xl font-black text-white">{selectedTopic} Challenges</h1>
+                    </div>
+                    <p className="text-zinc-500 text-xs mt-1.5 leading-relaxed">{selectedTopicMeta.desc}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handlePickRandomUnsolved}
+                    className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-xs font-black rounded-2xl text-white flex items-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-white/10 active:scale-95 transition-all cursor-pointer"
+                  >
+                    🎲 Pick Random Unsolved
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="neon-glass p-6 rounded-3xl flex flex-col justify-between md:col-span-2">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-xs font-black uppercase text-zinc-500">Track Mastery</span>
+                    <span className="text-sm font-black text-white">{topicProgress.solvedCount} / {topicProgress.totalCount} Solved</span>
+                  </div>
+                  <div className="w-full bg-white/5 h-2.5 rounded-full overflow-hidden">
+                    <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-full transition-all duration-500" style={{ width: `${topicProgress.percent}%` }} />
+                  </div>
+                  <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-2.5">
+                    {topicProgress.percent}% Complete
+                  </div>
+                </div>
+
+                <div className="neon-glass p-6 rounded-3xl flex flex-col justify-center items-center text-center">
+                  <span className="text-xs font-black uppercase text-zinc-500 mb-1">Active Fail Queue</span>
+                  <div className="text-2xl font-black text-red-400">
+                    {selectedTopicQuestions.filter(q => unsolvedRepeatedList.includes(q.id) && !solvedList.includes(q.id)).length} Questions
+                  </div>
+                  <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">Marked for persistent repetition</span>
+                </div>
+              </div>
+
+              {/* Question Row List */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-black text-zinc-300 flex items-center gap-2">
+                  <BookOpenCheck size={18} className="text-indigo-400" /> Challenge Curriculum
+                </h2>
+                
+                <div className="overflow-hidden border border-white/10 rounded-3xl glass-dark">
+                  <table className="w-full border-collapse text-left">
+                    <thead>
+                      <tr className="border-b border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-zinc-500 h-10 px-6">
+                        <th className="pl-6 w-16">Status</th>
+                        <th className="py-3">Challenge Title</th>
+                        <th className="py-3 w-32">Difficulty</th>
+                        <th className="pr-6 w-32 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-sm text-zinc-300 font-medium">
+                      {selectedTopicQuestions.map((q) => {
+                        const isSolved = solvedList.includes(q.id);
+                        const isFailed = unsolvedRepeatedList.includes(q.id);
+
+                        return (
+                          <tr key={q.id} className="hover:bg-white/5 transition-all h-16 group">
+                            <td className="pl-6">
+                              {isSolved ? (
+                                <span className="text-emerald-400" title="Solved successfully!"><CheckCircle2 size={18} /></span>
+                              ) : isFailed ? (
+                                <span className="text-red-400 animate-pulse" title="Marked for repetition!"><RotateCcw size={18} /></span>
+                              ) : (
+                                <span className="text-zinc-600"><QuestionIcon size={18} /></span>
+                              )}
+                            </td>
+                            <td className="py-4">
+                              <div className="font-bold text-white group-hover:text-indigo-300 transition-colors">{q.title}</div>
+                              <div className="text-xs text-zinc-500 mt-0.5 line-clamp-1 font-medium">{q.description}</div>
+                            </td>
+                            <td>
+                              <span className={`px-2.5 py-0.5 text-[9px] font-black tracking-wider rounded-md uppercase border ${diffColors[q.difficulty || 'Medium']}`}>
+                                {q.difficulty || 'Medium'}
+                              </span>
+                            </td>
+                            <td className="pr-6 text-right">
+                              <button
+                                onClick={() => setActiveQuestion(q)}
+                                className={`px-4 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer border ${
+                                  isSolved 
+                                    ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20' 
+                                    : isFailed 
+                                    ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/20 animate-pulse'
+                                    : 'bg-white/5 hover:bg-white/10 text-white border-white/10'
+                                }`}
+                              >
+                                {isSolved ? 'Solve Again' : isFailed ? 'Retry' : 'Solve'}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         ) : (
-          // WORKSPACE ARENA VIEW (Split Editor)
+          // VIEW 3: LEETCODE WORKSPACE SPLIT ARENA VIEW
           <motion.div 
+            key="workspace"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1139,13 +1744,10 @@ const CodingPractice = () => {
             {/* Top workspace toolbar */}
             <div className="h-14 border-b border-white/10 px-6 flex items-center justify-between bg-black/40 backdrop-blur-md shrink-0">
               <button 
-                onClick={() => {
-                  setActiveQuestion(null);
-                  setSelectedTopic(null);
-                }}
+                onClick={() => setActiveQuestion(null)}
                 className="flex items-center gap-2 text-xs font-black text-zinc-400 hover:text-white uppercase tracking-wider transition-colors cursor-pointer"
               >
-                <ChevronLeft size={16} /> Return to Practice Arena
+                <ChevronLeft size={16} /> Back to Question List
               </button>
 
               <div className="flex items-center gap-3">
