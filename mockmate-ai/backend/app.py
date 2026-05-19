@@ -1,14 +1,25 @@
 import os
+import sys
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
+
+# Dynamic Python Path Injection for Serverless Runtimes
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
 # Load environment variables
 load_dotenv()
 
 def create_app():
-    # Configure app to serve the frontend dist folder
-    app = Flask(__name__, static_folder='../frontend/dist')
+    # Configure app dynamically to serve static folder only if it exists (handles local vs vercel containers)
+    static_dir = os.path.abspath(os.path.join(backend_dir, '../frontend/dist'))
+    if os.path.exists(static_dir):
+        app = Flask(__name__, static_folder=static_dir)
+    else:
+        app = Flask(__name__)
+        
     CORS(app)
 
     # Import and register blueprints
@@ -20,14 +31,15 @@ def create_app():
     app.register_blueprint(resume_bp, url_prefix='/api/resume')
     app.register_blueprint(general_bp, url_prefix='/api')
 
-    # Serve the frontend
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def serve(path):
-        if path != "" and os.path.exists(app.static_folder + '/' + path):
-            return send_from_directory(app.static_folder, path)
-        else:
-            return send_from_directory(app.static_folder, 'index.html')
+    # Serve the frontend (only if static folder exists)
+    if os.path.exists(static_dir):
+        @app.route('/', defaults={'path': ''})
+        @app.route('/<path:path>')
+        def serve(path):
+            if path != "" and os.path.exists(app.static_folder + '/' + path):
+                return send_from_directory(app.static_folder, path)
+            else:
+                return send_from_directory(app.static_folder, 'index.html')
 
     return app
 
