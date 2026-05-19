@@ -234,8 +234,30 @@ def analyze_resume(resume_text):
         return json.dumps({"ats_score": 0, "key_skills": [], "suggestions": f"Error: {err_msg}", "job_roles": []})
 
 def evaluate_code(problem_title, problem_desc, code, language):
+    import re
+    # Strip comments and standard function signature template tags to see if they wrote anything
+    clean_code = re.sub(r'//.*|/\*[\s\S]*?\*/|#.*|"""[\s\S]*?"""', '', code).strip()
+    placeholder_indicators = ['Write your code here', 'TODO', 'insert your solution', 'code goes here']
+    has_placeholder = any(p.lower() in code.lower() for p in placeholder_indicators)
+    
+    if not clean_code or len(clean_code) < 15 or has_placeholder:
+        return json.dumps({
+            "correctness": 0,
+            "efficiency": 0,
+            "code_quality": 0,
+            "overall_score": 0.0,
+            "feedback": "⚠️ System Diagnostic: You did not write any functional code! Attempting to compile thin air is a bold design choice, but our neural compiler cannot evaluate blank space. Please write a real algorithm solution before pushing to production!",
+            "time_complexity": "N/A",
+            "space_complexity": "N/A",
+            "suggestions": [
+                "Please implement the actual function logic inside the editor.",
+                "Avoid submitting empty text files or comments-only templates.",
+                "Review the problem specification and declare the necessary return variables."
+            ]
+        })
+
     prompt = f"""
-    You are an expert coding interviewer. Evaluate the following code submission.
+    You are an expert coding interviewer. Evaluate the following code submission. Keep your feedback highly concise, clear, and bulleted to prevent response truncation.
     
     Problem: {problem_title}
     Description: {problem_desc}
@@ -246,15 +268,15 @@ def evaluate_code(problem_title, problem_desc, code, language):
     {code}
     ```
     
-    Provide evaluation as JSON with these exact keys:
+    Provide evaluation as JSON with these exact keys. Ensure that descriptions are short:
     - correctness: score out of 10
     - efficiency: score out of 10  
     - code_quality: score out of 10
     - overall_score: average score out of 10
-    - feedback: detailed feedback string
+    - feedback: concise detailed feedback string (max 80 words)
     - time_complexity: estimated time complexity string
     - space_complexity: estimated space complexity string
-    - suggestions: array of improvement suggestions
+    - suggestions: array of 2 to 3 concise suggestions
     """
     if USE_GITHUB_MODELS and GITHUB_TOKEN:
         try:
@@ -440,6 +462,7 @@ def generate_custom_quiz(category):
     - question: string (the problem text)
     - options: array of exactly 4 strings (logical options, distinct and realistic)
     - answer: integer (0-indexed index of the correct option in the options array, i.e., 0, 1, 2, or 3)
+    - explanation: string (a brief, clear, step-by-step walkthrough explaining how to solve the problem and reach the correct option)
     """
     
     if USE_GITHUB_MODELS and GITHUB_TOKEN:

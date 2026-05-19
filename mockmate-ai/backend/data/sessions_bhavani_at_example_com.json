@@ -48,45 +48,5 @@
     "date": "2026-05-18 12:50",
     "questions_count": 0,
     "duration_seconds": 300
-  },
-  {
-    "id": 6,
-    "type": "coding",
-    "role": "Developer",
-    "topic": "Two Sum",
-    "score": 0,
-    "date": "2026-05-18 14:11",
-    "questions_count": 1,
-    "duration_seconds": 18
-  },
-  {
-    "id": 7,
-    "type": "coding",
-    "role": "Developer",
-    "topic": "Unique Character Count",
-    "score": 87,
-    "date": "2026-05-18 15:13",
-    "questions_count": 1,
-    "duration_seconds": 192
-  },
-  {
-    "id": 8,
-    "type": "coding",
-    "role": "Developer",
-    "topic": "Two Sum",
-    "score": 17,
-    "date": "2026-05-18 15:16",
-    "questions_count": 1,
-    "duration_seconds": 67
-  },
-  {
-    "id": 9,
-    "type": "coding",
-    "role": "Developer",
-    "topic": "Character Frequency Sort",
-    "score": 100,
-    "date": "2026-05-18 16:11",
-    "questions_count": 1,
-    "duration_seconds": 73
   }
 ]

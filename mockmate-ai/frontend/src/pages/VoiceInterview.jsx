@@ -170,17 +170,23 @@ const VoiceInterview = () => {
           >
             <div className="flex items-center gap-3 mb-4">
               <CheckCircle2 className="text-emerald-500" />
-              <h3 className="text-xl font-bold text-emerald-400">Analysis Result: {feedback.score}/10</h3>
+              <h3 className="text-xl font-bold text-emerald-400">Analysis Result: {feedback.score * 10}/100</h3>
             </div>
             <div className="grid md:grid-cols-2 gap-8 text-sm">
               <div>
                 <h4 className="font-bold mb-2 text-indigo-400">Strengths</h4>
-                <p className="text-gray-400 leading-relaxed">{feedback.strengths || feedback.feedback}</p>
+                <p className="text-gray-400 leading-relaxed font-semibold whitespace-pre-line">{feedback.strengths || feedback.feedback}</p>
               </div>
               <div>
                 <h4 className="font-bold mb-2 text-violet-400">Suggested Improvement</h4>
-                <p className="text-gray-400 leading-relaxed">{feedback.areas_for_improvement || feedback.improvement}</p>
+                <p className="text-gray-400 leading-relaxed font-semibold whitespace-pre-line">{feedback.areas_for_improvement || feedback.improvement}</p>
               </div>
+              {feedback.model_answer && (
+                <div className="col-span-1 md:col-span-2 mt-6 pt-6 border-t border-white/5 bg-white/[0.02] p-6 rounded-2xl">
+                  <h4 className="font-bold mb-3 text-cyan-400 flex items-center gap-2">💡 Exemplary Model Answer (How to Answer Better)</h4>
+                  <p className="text-gray-300 leading-relaxed font-semibold italic whitespace-pre-line">"{feedback.model_answer}"</p>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

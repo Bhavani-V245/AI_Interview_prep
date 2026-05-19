@@ -46,10 +46,40 @@ const GroupDiscussion = () => {
   const chatEndRef = useRef(null);
   const recognitionRef = useRef(null);
 
-  // Auto-scroll to bottom of discussion
+  const speakMessage = (text, sender) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/\[.*?\]/g, '').trim();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    
+    if (sender === "Aarav") {
+      utterance.pitch = 0.95;
+      utterance.rate = 1.05;
+    } else if (sender === "Sarah") {
+      utterance.pitch = 1.15;
+      utterance.rate = 1.0;
+    } else if (sender === "David") {
+      utterance.pitch = 0.8;
+      utterance.rate = 0.95;
+    } else {
+      utterance.pitch = 1.05;
+      utterance.rate = 1.02;
+    }
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Auto-scroll to bottom of discussion & clean up speech on unmount
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatLog, peerSpeakingState]);
+
+  useEffect(() => {
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Speech Recognition Setup
   useEffect(() => {
@@ -126,6 +156,7 @@ const GroupDiscussion = () => {
         setTimeout(() => {
           setChatLog([initialModMessage]);
           setPeerSpeakingState("");
+          speakMessage(initialModMessage.content, "Moderator");
           // Trigger Aarav to speak first
           simulatePeerResponse("Aarav", [initialModMessage], generatedTopic.topic);
         }, 1500);
@@ -166,21 +197,26 @@ const GroupDiscussion = () => {
       });
 
       if (res.data && res.data.content) {
+        const peerName = res.data.peerName || speakPeer.name;
+        const content = res.data.content;
         setChatLog(prev => [...prev, {
-          sender: res.data.peerName || speakPeer.name,
+          sender: peerName,
           role: res.data.role || speakPeer.role,
-          content: res.data.content,
+          content: content,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }]);
+        speakMessage(content, peerName);
       }
     } catch (err) {
       console.error(err);
+      const fallbackContent = `I think this is a highly complex issue. Looking at the current trends, there are both positives and negatives that we must balance carefully.`;
       setChatLog(prev => [...prev, {
         sender: speakPeer.name,
         role: speakPeer.role,
-        content: `I think this is a highly complex issue. Looking at the current trends, there are both positives and negatives that we must balance carefully.`,
+        content: fallbackContent,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
+      speakMessage(fallbackContent, speakPeer.name);
     } finally {
       setPeerSpeakingState("");
       setActiveSpeaker("You");
@@ -216,6 +252,9 @@ const GroupDiscussion = () => {
   };
 
   const finishDiscussion = async () => {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     setEnding(true);
     toast.info("Moderator is compiling overall performance reports...");
     

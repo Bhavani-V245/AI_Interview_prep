@@ -69,6 +69,9 @@ const Quiz = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [userAnswers, setUserAnswers] = useState({});
+
+  const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
 
   const startQuiz = async (catName) => {
     setLoading(true);
@@ -79,6 +82,7 @@ const Quiz = () => {
     setSelectedOption(null);
     setIsAnswered(false);
     setQuestions([]);
+    setUserAnswers({});
 
     try {
       const res = await axios.post('/api/interview/generate-quiz', {
@@ -88,32 +92,36 @@ const Quiz = () => {
         setQuestions(res.data.questions);
       } else {
         toast.error("Failed to generate quiz. Using fallback set.");
-        // Simple client-side fallback if AI fails or times out
         setQuestions([
           {
             question: `A sells a watch to B at 20% profit, and B sells it to C at 10% loss. If C pays $108 for the watch, how much did A pay?`,
             options: ["$90", "$100", "$95", "$110"],
-            answer: 1
+            answer: 1,
+            explanation: "Let A's purchase price be x. B buys at 1.2x. C buys at 1.2x * 0.9 = 1.08x. Since C pays $108, 1.08x = 108 => x = $100."
           },
           {
             question: "In a certain code, 'LIGHT' is written as 'MJHIT'. How is 'SOUND' written in that code?",
             options: ["TPEOE", "TPVOE", "TPVOF", "TPEOF"],
-            answer: 1
+            answer: 1,
+            explanation: "Each letter is shifted forward by 1 position (+1 shift index): S->T, O->P, U->V, N->O, D->E."
           },
           {
             question: "A and B can complete a work in 12 days and 18 days respectively. A starts the work and they work on alternate days. In how many days will the work be completed?",
             options: ["14.3 days", "14.5 days", "15 days", "13.8 days"],
-            answer: 0
+            answer: 0,
+            explanation: "Work = 36 units. A does 3 u/day, B does 2 u/day. In 2 days, 5 units completed. In 14 days (7 cycles), 35 units completed. Remaining 1 unit done by A in 1/3 day => 14.3 days."
           },
           {
             question: "A card is drawn from a well-shuffled pack of 52 cards. What is the probability of drawing a Queen or a Club?",
             options: ["17/52", "4/13", "16/52", "3/13"],
-            answer: 2
+            answer: 2,
+            explanation: "Number of Queens = 4. Number of Clubs = 13. Overlap (Queen of Clubs) = 1. Total unique cards = 4 + 13 - 1 = 16. Probability = 16/52."
           },
           {
             question: "Six people A, B, C, D, E and F are sitting in a circle facing the center. B is between F and D, E is between A and C, and F is to the left of D. Who is opposite to B?",
             options: ["A", "C", "E", "D"],
-            answer: 2
+            answer: 2,
+            explanation: "Arranging in circle facing center: D -> F -> B -> A -> E -> C. Opposite to B is E."
           }
         ]);
       }
@@ -124,27 +132,32 @@ const Quiz = () => {
         {
           question: `A sells a watch to B at 20% profit, and B sells it to C at 10% loss. If C pays $108 for the watch, how much did A pay?`,
           options: ["$90", "$100", "$95", "$110"],
-          answer: 1
+          answer: 1,
+          explanation: "Let A's purchase price be x. B buys at 1.2x. C buys at 1.2x * 0.9 = 1.08x. Since C pays $108, 1.08x = 108 => x = $100."
         },
         {
           question: "In a certain code, 'LIGHT' is written as 'MJHIT'. How is 'SOUND' written in that code?",
           options: ["TPEOE", "TPVOE", "TPVOF", "TPEOF"],
-          answer: 1
+          answer: 1,
+          explanation: "Each letter is shifted forward by 1 position (+1 shift index): S->T, O->P, U->V, N->O, D->E."
         },
         {
           question: "A and B can complete a work in 12 days and 18 days respectively. A starts the work and they work on alternate days. In how many days will the work be completed?",
           options: ["14.3 days", "14.5 days", "15 days", "13.8 days"],
-          answer: 0
+          answer: 0,
+          explanation: "Work = 36 units. A does 3 u/day, B does 2 u/day. In 2 days, 5 units completed. In 14 days (7 cycles), 35 units completed. Remaining 1 unit done by A in 1/3 day => 14.3 days."
         },
         {
           question: "A card is drawn from a well-shuffled pack of 52 cards. What is the probability of drawing a Queen or a Club?",
           options: ["17/52", "4/13", "16/52", "3/13"],
-          answer: 2
+          answer: 2,
+          explanation: "Number of Queens = 4. Number of Clubs = 13. Overlap (Queen of Clubs) = 1. Total unique cards = 4 + 13 - 1 = 16. Probability = 16/52."
         },
         {
           question: "Six people A, B, C, D, E and F are sitting in a circle facing the center. B is between F and D, E is between A and C, and F is to the left of D. Who is opposite to B?",
           options: ["A", "C", "E", "D"],
-          answer: 2
+          answer: 2,
+          explanation: "Arranging in circle facing center: D -> F -> B -> A -> E -> C. Opposite to B is E."
         }
       ]);
     } finally {
@@ -156,6 +169,7 @@ const Quiz = () => {
     if (isAnswered) return;
     setSelectedOption(idx);
     setIsAnswered(true);
+    setUserAnswers(prev => ({ ...prev, [currentIdx]: idx }));
     if (idx === questions[currentIdx].answer) setScore(score + 1);
   };
 
@@ -330,24 +344,33 @@ const Quiz = () => {
             {/* Questions review & answers list */}
             <div className="space-y-4 pt-4">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500 px-1">Review Questions & Corrections</h3>
-              {questions.map((q, idx) => (
-                <div key={idx} className="glass p-6 rounded-2xl border border-white/5 space-y-3">
-                  <h4 className="text-sm font-bold text-white flex gap-2">
-                    <span className="text-indigo-400 font-black">Q{idx + 1}.</span> {q.question}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
-                      <span className="text-zinc-500 font-semibold block mb-0.5">Correct Answer:</span>
-                      <span className="text-emerald-400 font-bold">{q.options[q.answer]}</span>
+              {questions.map((q, idx) => {
+                const userChoice = userAnswers[idx];
+                const isCorrect = userChoice === q.answer;
+                return (
+                  <div key={idx} className="glass p-6 rounded-2xl border border-white/5 space-y-4">
+                    <h4 className="text-sm font-bold text-white flex gap-2">
+                      <span className="text-indigo-400 font-black">Q{idx + 1}.</span> {q.question}
+                    </h4>
+                    <div className="grid md:grid-cols-2 gap-4 text-xs">
+                      <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                        <span className="text-zinc-500 font-black uppercase tracking-wider block mb-1">Correct Option:</span>
+                        <span className="text-emerald-400 font-bold">{q.options[q.answer]}</span>
+                      </div>
+                      <div className={`p-4 rounded-xl border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-red-500/5 border-red-500/20 text-red-400'}`}>
+                        <span className="text-zinc-500 font-black uppercase tracking-wider block mb-1">Your Selection:</span>
+                        <span className="font-bold">{userChoice !== undefined ? q.options[userChoice] : "No answer submitted"}</span>
+                      </div>
                     </div>
-                    {/* User choice if incorrect */}
-                    <div className={`p-3 rounded-xl border ${score === questions.length ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-red-500/5 border-red-500/10'}`}>
-                      <span className="text-zinc-500 font-semibold block mb-0.5">Correctness Status:</span>
-                      <span className="text-white font-bold">Verified Correct Explanation</span>
-                    </div>
+                    {q.explanation && (
+                      <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-xl text-xs">
+                        <span className="text-indigo-400 font-black uppercase tracking-wider block mb-1">💡 Step-by-Step Walkthrough:</span>
+                        <p className="text-zinc-300 font-medium leading-relaxed mt-1">{q.explanation}</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="flex justify-center gap-4 pt-8">
