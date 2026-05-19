@@ -88,6 +88,63 @@ def call_github_fallback_chat(chat_history, system_instruction=None):
         res_data = json.loads(response.read().decode("utf-8"))
         return res_data["choices"][0]["message"]["content"].strip()
 
+FALLBACK_QUESTIONS = {
+    "react": [
+        "What is the difference between Virtual DOM and Real DOM, and how does React's reconciliation algorithm work?",
+        "Explain the lifecycle of a React component and the difference between useEffect cleanup and standard hooks cleanup.",
+        "How does React's state batching work, and how does the fiber architecture improve rendering performance?",
+        "What are higher-order components (HOC) and custom hooks? Compare their use cases and performance implications.",
+        "Explain React's Context API. When should you use it over a dedicated state management library like Redux or Zustand?"
+    ],
+    "node.js": [
+        "Explain the Node.js event loop in detail. What are the different phases, and how do process.nextTick and setImmediate differ?",
+        "How does Node.js handle concurrency despite being single-threaded? Explain worker threads vs cluster module.",
+        "What is the difference between stream-based and buffer-based file operations in Node.js? How do streams prevent memory leaks?",
+        "How do you secure a Node.js REST API against common vulnerabilities like SQL injection, CSRF, and XSS?",
+        "Explain backpressure in Node.js streams and how you handle it during high-throughput data processing."
+    ],
+    "python": [
+        "Explain Python's Global Interpreter Lock (GIL). How does it affect multi-threading, and what are the alternatives?",
+        "What is the difference between deep copy and shallow copy in Python? Give practical examples.",
+        "Explain how memory management and garbage collection work in Python (reference counting and generational collection).",
+        "What are Python generators and decorators? Explain their internal mechanics and write a custom memoization decorator.",
+        "Compare lists, tuples, sets, and dictionaries in Python in terms of search complexity and memory footprint."
+    ],
+    "system design": [
+        "How would you design a highly scalable URL shortening service like Bitly? Discuss database schema, caching, and hash collision strategies.",
+        "Explain the CAP theorem. How do you make trade-offs between consistency and availability in a distributed database?",
+        "How do you design a real-time notification system (push, email, SMS) that handles millions of active users concurrently?",
+        "What is database sharding? Compare horizontal sharding, vertical sharding, and consistent hashing.",
+        "How does a Content Delivery Network (CDN) work, and how do you handle dynamic content caching and cache invalidation?"
+    ],
+    "sql": [
+        "What are the differences between clustered and non-clustered indexes? How do they affect query performance?",
+        "Explain SQL transaction isolation levels (Read Uncommitted, Read Committed, Repeatable Read, Serializable) and the anomalies they prevent.",
+        "What is database normalization? Describe 1NF, 2NF, 3NF, and BCNF with concrete examples.",
+        "How do you optimize a slow-running SQL query? Explain how to read an execution plan.",
+        "What are window functions in SQL? Give examples of using ROW_NUMBER, RANK, and DENSE_RANK."
+    ]
+}
+
+def get_fallback_questions(role, topic):
+    # Normalize input
+    t_clean = str(topic).lower().strip()
+    r_clean = str(role).lower().strip()
+    
+    # Match specific topic
+    for key, questions in FALLBACK_QUESTIONS.items():
+        if key in t_clean or key in r_clean:
+            return questions
+            
+    # Generic premium fallback based on the specific role and topic requested
+    return [
+        f"In your experience as a professional focusing on {topic}, what are the most critical architectural decisions you've made to ensure high reliability?",
+        f"Explain how you design, test, and implement secure data flow patterns for {role} systems handling sensitive transaction volumes.",
+        f"Describe a high-impact technical challenge you resolved while working with {topic}. What was your strategy, and how did you measure success?",
+        f"How do you approach performance profiling, debugging, and memory optimization when a key module in {role} experiences unexpected bottlenecking?",
+        f"How do you stay updated with the latest updates and best practices in the {topic} ecosystem, and how do you introduce them to your team?"
+    ]
+
 def generate_interview_questions(role, topic, difficulty, num_questions=5):
     prompt = f"""
     You are an expert interviewer. Generate {num_questions} interview questions for the role of {role} 
@@ -100,7 +157,10 @@ def generate_interview_questions(role, topic, difficulty, num_questions=5):
     """
     if USE_GITHUB_MODELS and GITHUB_TOKEN:
         try:
-            return call_github_fallback(prompt)
+            res = call_github_fallback(prompt)
+            # Basic validation to ensure the response is parseable JSON
+            json.loads(res)
+            return res
         except Exception as e:
             print(f"Primary GitHub Models error, falling back to Gemini: {e}")
             
@@ -114,23 +174,18 @@ def generate_interview_questions(role, topic, difficulty, num_questions=5):
             text = text.split("```json")[1].split("```")[0].strip()
         elif "```" in text:
             text = text.split("```")[1].split("```")[0].strip()
+        
+        # Validate that we successfully parsed it as valid JSON list
+        json.loads(text)
         return text
     except Exception as e:
         err_msg = str(e)
-        if GITHUB_TOKEN:
-            try:
-                return call_github_fallback(prompt)
-            except:
-                pass
-        if "Quota exceeded" in err_msg or "429" in err_msg:
-            return json.dumps([
-                f"Rate Limit Alert: The AI is busy due to high traffic. Let's practice API design: how do you design rate-limiting algorithms for high-scale systems?",
-                "What is the difference between Token Bucket and Leaky Bucket algorithms?",
-                "How do you implement backoff and retry policies on connection failures?",
-                "How would you use Redis to throttle request rates in a distributed API gateway?",
-                "Explain how HTTP 429 Retry-After headers protect server capacity."
-            ])
-        return json.dumps([f"Error: {err_msg}"])
+        print(f"Both API configurations failed or returned unparseable results: {err_msg}")
+        print("Activating dynamic local curated fallback engine...")
+        
+        # Instantly generate high-quality fallback questions matching the user's role and topic!
+        fallback_list = get_fallback_questions(role, topic)
+        return json.dumps(fallback_list)
 
 def get_feedback(question, answer):
     prompt = f"""
