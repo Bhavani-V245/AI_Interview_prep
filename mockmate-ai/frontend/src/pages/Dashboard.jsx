@@ -380,6 +380,7 @@ const Dashboard = () => {
                       {[
                         { label: 'AI Interview', path: '/interview', color: 'from-indigo-500 to-cyan-400' },
                         { label: 'Coding Round', path: '/coding', color: 'from-violet-500 to-pink-500' },
+                        { label: 'Coding Practice', path: '/coding-practice', color: 'from-indigo-500 to-pink-500' },
                         { label: 'Aptitude Quiz', path: '/quiz', color: 'from-emerald-400 to-cyan-400' },
                         { label: 'Resume Analysis', path: '/resume', color: 'from-amber-400 to-orange-500' },
                       ].map((item, i) => (

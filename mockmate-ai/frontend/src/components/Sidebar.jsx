@@ -13,7 +13,8 @@ import {
   Keyboard,
   Users,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -31,6 +32,7 @@ const Sidebar = () => {
     { icon: <MessageSquare size={20} />, label: 'AI Interview', path: '/interview' },
     { icon: <Mic size={20} />, label: 'Voice Mode', path: '/voice-interview' },
     { icon: <Code2 size={20} />, label: 'Coding Round', path: '/coding' },
+    { icon: <BookOpen size={20} />, label: 'Coding Practice', path: '/coding-practice' },
     { icon: <Users size={20} />, label: 'Group Discussion', path: '/gd' },
     { icon: <FileSearch size={20} />, label: 'Resume Analyzer', path: '/resume' },
     { icon: <Trophy size={20} />, label: 'Aptitude Quiz', path: '/quiz' },

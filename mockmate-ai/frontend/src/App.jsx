@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Interview from './pages/Interview';
 import VoiceInterview from './pages/VoiceInterview';
 import CodingRound from './pages/CodingRound';
+import CodingPractice from './pages/CodingPractice';
 import ResumeAnalyzer from './pages/ResumeAnalyzer';
 import Analytics from './pages/Analytics';
 import Quiz from './pages/Quiz';
@@ -37,6 +38,7 @@ function App() {
           <Route path="/interview" element={<ProtectedRoute><Interview /></ProtectedRoute>} />
           <Route path="/voice-interview" element={<ProtectedRoute><VoiceInterview /></ProtectedRoute>} />
           <Route path="/coding" element={<ProtectedRoute><CodingRound /></ProtectedRoute>} />
+          <Route path="/coding-practice" element={<ProtectedRoute><CodingPractice /></ProtectedRoute>} />
           <Route path="/resume" element={<ProtectedRoute><ResumeAnalyzer /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
           <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
