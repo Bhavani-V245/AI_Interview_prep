@@ -13,7 +13,9 @@ import {
   Award,
   Zap,
   Target,
-  Send
+  Send,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -104,6 +106,7 @@ const CodingRound = () => {
   const [evaluation, setEvaluation] = useState(null);
   const [generatingProblem, setGeneratingProblem] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState('Medium');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const problem = problemList[problemIdx] || PROBLEMS[0];
 
@@ -120,6 +123,7 @@ const CodingRound = () => {
     }
     setConsoleOutput('> Ready. Write your solution and click Run Code.');
     setEvaluation(null);
+    setIsExpanded(false);
   }, [problemIdx, language, problemList]);
 
   const generateCustomProblem = async () => {
@@ -244,8 +248,8 @@ const CodingRound = () => {
             <Code2 className="text-indigo-400" size={18} />
             <h1 className="font-bold uppercase tracking-wider text-[10px] text-gray-500">Problem {problemIdx + 1} / {problemList.length}</h1>
           </div>
-          <div className={`px-3 py-1 text-[10px] font-bold rounded-full border uppercase ${diffColors[problem.difficulty || 'Medium']}`}>
-            {problem.difficulty || 'Medium'}
+          <div className="flex items-center gap-1.5 text-[9px] font-black tracking-wider text-indigo-400 uppercase bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+            <Target size={10} className="text-indigo-400" /> Target: 8.0+
           </div>
         </div>
 
@@ -281,8 +285,13 @@ const CodingRound = () => {
         </div>
 
         <div className="p-6 space-y-6 flex-1">
-          <div>
-            <h2 className="text-xl font-bold mb-3">{problem.title}</h2>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold">{problem.title}</h2>
+              <span className={`px-2.5 py-0.5 text-[9px] font-black tracking-wider rounded-md uppercase border ${diffColors[problem.difficulty || 'Medium']}`}>
+                {problem.difficulty || 'Medium'}
+              </span>
+            </div>
             <p className="text-gray-400 leading-relaxed text-sm">{problem.description}</p>
           </div>
 
@@ -375,7 +384,7 @@ const CodingRound = () => {
         </div>
 
         {/* Editor */}
-        <div className="flex-1 relative">
+        <div className="flex-1 min-h-0 relative">
           <Editor
             height="100%"
             language={language}
@@ -395,13 +404,32 @@ const CodingRound = () => {
         </div>
 
         {/* Console + Evaluation */}
-        <div className={`border-t border-white/10 glass-dark flex flex-col ${evaluation ? 'h-72' : 'h-44'}`}>
-          <div className="h-9 px-5 border-b border-white/10 flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-            <Terminal size={12} /> {evaluation ? 'AI Evaluation' : 'Console Output'}
+        <div className={`border-t border-white/10 glass-dark flex flex-col transition-all duration-300 ${
+          evaluation 
+            ? isExpanded ? 'h-[60vh]' : 'h-[35vh]' 
+            : 'h-40'
+        }`}>
+          <div className="h-9 px-5 border-b border-white/10 flex items-center justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-black/40">
+            <div className="flex items-center gap-2">
+              <Terminal size={12} /> {evaluation ? 'AI Evaluation Analysis' : 'Console Output'}
+            </div>
+            {evaluation && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded(prev => !prev)}
+                className="text-[9px] font-black text-indigo-400 hover:text-white transition-all flex items-center gap-1 cursor-pointer bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/10 uppercase tracking-wider"
+              >
+                {isExpanded ? (
+                  <>Collapse <Minimize2 size={10} /></>
+                ) : (
+                  <>Expand <Maximize2 size={10} /></>
+                )}
+              </button>
+            )}
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
             {evaluation ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="grid grid-cols-4 gap-2">
                   {[
                     { label: 'Correctness', val: evaluation.correctness, icon: <CheckCircle2 size={12} /> },
@@ -415,10 +443,39 @@ const CodingRound = () => {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-zinc-400 leading-relaxed">{evaluation.feedback}</p>
-                <div className="flex gap-3 text-[10px]">
-                  <span className="px-2 py-1 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">Time: {evaluation.time_complexity}</span>
-                  <span className="px-2 py-1 bg-violet-500/10 text-violet-400 rounded-lg border border-violet-500/20">Space: {evaluation.space_complexity}</span>
+                
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400">Detailed Feedback:</span>
+                  <p className="text-xs text-zinc-300 leading-relaxed font-semibold">{evaluation.feedback}</p>
+                </div>
+
+                <div className="pt-2 border-t border-white/5 space-y-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">💡 Suggested Actions to Improve:</span>
+                  <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1.5 mt-1 font-medium">
+                    {evaluation.suggestions ? (
+                      Array.isArray(evaluation.suggestions) ? (
+                        evaluation.suggestions.map((sug, idx) => (
+                          <li key={idx} className="leading-relaxed">{sug}</li>
+                        ))
+                      ) : typeof evaluation.suggestions === 'string' ? (
+                        evaluation.suggestions.split('\n').filter(Boolean).map((sug, idx) => (
+                          <li key={idx} className="leading-relaxed">{sug.replace(/^-\s*/, '')}</li>
+                        ))
+                      ) : (
+                        <li className="leading-relaxed">Verify complexity limits and optimize standard recursion overhead.</li>
+                      )
+                    ) : (
+                      <>
+                        <li className="leading-relaxed">Ensure all edge cases (such as null/empty arrays and maximum boundaries) are handled.</li>
+                        <li className="leading-relaxed">Refactor nested loops to optimize execution time complexity to its theoretical lower bound.</li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="flex gap-3 text-[10px] pt-1">
+                  <span className="px-2 py-1 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20 font-bold">Time: {evaluation.time_complexity}</span>
+                  <span className="px-2 py-1 bg-violet-500/10 text-violet-400 rounded-lg border border-violet-500/20 font-bold">Space: {evaluation.space_complexity}</span>
                 </div>
               </div>
             ) : (
