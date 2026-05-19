@@ -26,6 +26,18 @@ const Login = () => {
     }
   };
 
+  const handleOAuthLogin = (provider) => {
+    const mockUsers = {
+      Google: { email: 'google.dev@gmail.com', name: 'Google Developer' },
+      GitHub: { email: 'github.coder@github.com', name: 'GitHub Coder' }
+    };
+    
+    const user = mockUsers[provider];
+    localStorage.setItem('user', JSON.stringify(user));
+    toast.success(`Welcome to MockMate AI! Logged in successfully via ${provider}.`);
+    navigate('/dashboard');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[#030712]">
       <motion.div 
@@ -97,10 +109,18 @@ const Login = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <button className="btn-secondary py-3 flex items-center justify-center gap-2">
+            <button 
+              type="button"
+              onClick={() => handleOAuthLogin('GitHub')}
+              className="btn-secondary py-3 flex items-center justify-center gap-2 hover:bg-white/10 transition-colors cursor-pointer"
+            >
               <Globe size={20} /> Github
             </button>
-            <button className="btn-secondary py-3 flex items-center justify-center gap-2">
+            <button 
+              type="button"
+              onClick={() => handleOAuthLogin('Google')}
+              className="btn-secondary py-3 flex items-center justify-center gap-2 hover:bg-white/10 transition-colors cursor-pointer"
+            >
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" /> Google
             </button>
           </div>
