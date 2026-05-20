@@ -129,19 +129,20 @@ const Landing = () => {
             <div className="rounded-[40px] overflow-hidden bg-black relative">
               <video
                 src="/demo.mp4"
-                poster="/demo.png"
+                poster="/demo.webp"
                 autoPlay
                 loop
                 muted
                 playsInline
                 className="w-full h-auto rounded-[40px]"
                 onError={(e) => {
-                  // If video fails to load (e.g. not present), fallback gracefully to image only
-                  e.target.style.display = 'none';
-                  const img = document.createElement('img');
-                  img.src = '/demo.png';
-                  img.className = 'w-full h-auto rounded-[40px]';
-                  e.target.parentNode.insertBefore(img, e.target);
+                  if (e.target.error) {
+                    e.target.style.display = 'none';
+                    const img = document.createElement('img');
+                    img.src = '/demo.webp';
+                    img.className = 'w-full h-auto rounded-[40px]';
+                    e.target.parentNode.insertBefore(img, e.target);
+                  }
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-[40px] pointer-events-none" />
