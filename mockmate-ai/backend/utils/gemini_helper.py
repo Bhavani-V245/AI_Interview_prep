@@ -127,23 +127,60 @@ FALLBACK_QUESTIONS = {
 }
 
 def get_fallback_questions(role, topic):
+    import random
     # Normalize input
     t_clean = str(topic).lower().strip()
     r_clean = str(role).lower().strip()
     
+    base_questions = []
+    matched = False
+    
     # Match specific topic
-    for key, questions in FALLBACK_QUESTIONS.items():
+    for key, q_list in FALLBACK_QUESTIONS.items():
         if key in t_clean or key in r_clean:
-            return questions
+            base_questions = list(q_list)
+            matched = True
+            break
             
-    # Generic premium fallback based on the specific role and topic requested
-    return [
-        f"In your experience as a professional focusing on {topic}, what are the most critical architectural decisions you've made to ensure high reliability?",
-        f"Explain how you design, test, and implement secure data flow patterns for {role} systems handling sensitive transaction volumes.",
-        f"Describe a high-impact technical challenge you resolved while working with {topic}. What was your strategy, and how did you measure success?",
-        f"How do you approach performance profiling, debugging, and memory optimization when a key module in {role} experiences unexpected bottlenecking?",
-        f"How do you stay updated with the latest updates and best practices in the {topic} ecosystem, and how do you introduce them to your team?"
+    if not matched:
+        base_questions = [
+            f"In your experience as a professional focusing on {topic}, what are the most critical architectural decisions you've made to ensure high reliability?",
+            f"Explain how you design, test, and implement secure data flow patterns for {role} systems handling sensitive transaction volumes.",
+            f"Describe a high-impact technical challenge you resolved while working with {topic}. What was your strategy, and how did you measure success?",
+            f"How do you approach performance profiling, debugging, and memory optimization when a key module in {role} experiences unexpected bottlenecking?",
+            f"How do you stay updated with the latest updates and best practices in the {topic} ecosystem, and how do you introduce them to your team?"
+        ]
+        
+    # Dynamic phrasing prefixes to make them absolutely non-repeatable (zero repeats!)
+    prefixes = [
+        "Given a production environment: ",
+        "From a senior engineering perspective, ",
+        "In a scalable architectural setup: ",
+        "Considering modern industry best practices: ",
+        "Focusing on high-availability and security: ",
+        "Can you explain: ",
+        "Describe how you would handle this: ",
+        "Reflecting on your previous team lead challenges: "
     ]
+    
+    # Shuffle questions to ensure unique ordering
+    random.shuffle(base_questions)
+    
+    # Apply dynamic phrasing prefixing and role/topic integration
+    shuffled_questions = []
+    for i, q in enumerate(base_questions):
+        if not prefixes:
+            break
+        pref = random.choice(prefixes)
+        prefixes.remove(pref)
+        
+        q_formatted = q
+        if topic.lower() not in q_formatted.lower() and role.lower() not in q_formatted.lower():
+            q_formatted = f"{q_formatted} (In context of {role} systems utilizing {topic})"
+            
+        shuffled_questions.append(f"{pref}{q_formatted}")
+        
+    return shuffled_questions[:5]
 
 def generate_interview_questions(role, topic, difficulty, num_questions=5):
     prompt = f"""
