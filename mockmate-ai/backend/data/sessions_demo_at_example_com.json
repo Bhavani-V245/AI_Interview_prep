@@ -4,7 +4,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Two Sum",
-    "score": 0,
+    "score": 0.0,
     "date": "2026-05-18 00:23",
     "questions_count": 1,
     "duration_seconds": 31
@@ -44,7 +44,7 @@
     "type": "group_discussion",
     "role": "GD Prep",
     "topic": "The Impact of Remote Work on Corporate Culture",
-    "score": 70,
+    "score": 70.0,
     "date": "2026-05-18 12:50",
     "questions_count": 0,
     "duration_seconds": 300
@@ -54,7 +54,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Two Sum",
-    "score": 0,
+    "score": 0.0,
     "date": "2026-05-18 14:11",
     "questions_count": 1,
     "duration_seconds": 18
@@ -64,7 +64,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Unique Character Count",
-    "score": 87,
+    "score": 87.0,
     "date": "2026-05-18 15:13",
     "questions_count": 1,
     "duration_seconds": 192
@@ -74,7 +74,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Two Sum",
-    "score": 17,
+    "score": 17.0,
     "date": "2026-05-18 15:16",
     "questions_count": 1,
     "duration_seconds": 67
@@ -84,7 +84,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Character Frequency Sort",
-    "score": 100,
+    "score": 100.0,
     "date": "2026-05-18 16:11",
     "questions_count": 1,
     "duration_seconds": 73
@@ -94,7 +94,7 @@
     "type": "quiz",
     "role": "Placement Aptitude",
     "topic": "Number System",
-    "score": 0,
+    "score": 0.0,
     "date": "2026-05-19 09:22",
     "questions_count": 5,
     "duration_seconds": 240
@@ -104,7 +104,7 @@
     "type": "quiz",
     "role": "Placement Aptitude",
     "topic": "Number System",
-    "score": 0,
+    "score": 0.0,
     "date": "2026-05-19 09:23",
     "questions_count": 5,
     "duration_seconds": 240
@@ -114,7 +114,7 @@
     "type": "quiz",
     "role": "Placement Aptitude",
     "topic": "Number System",
-    "score": 0,
+    "score": 0.0,
     "date": "2026-05-19 09:23",
     "questions_count": 5,
     "duration_seconds": 240
@@ -124,7 +124,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Two Sum",
-    "score": 17,
+    "score": 17.0,
     "date": "2026-05-19 09:29",
     "questions_count": 1,
     "duration_seconds": 43
@@ -134,7 +134,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Two Sum",
-    "score": 17,
+    "score": 17.0,
     "date": "2026-05-19 09:37",
     "questions_count": 1,
     "duration_seconds": 5
@@ -144,7 +144,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Two Sum",
-    "score": 17,
+    "score": 17.0,
     "date": "2026-05-19 09:41",
     "questions_count": 1,
     "duration_seconds": 17
@@ -154,7 +154,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Two Sum",
-    "score": 17,
+    "score": 17.0,
     "date": "2026-05-19 09:44",
     "questions_count": 1,
     "duration_seconds": 9
@@ -164,7 +164,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Two Sum",
-    "score": 17,
+    "score": 17.0,
     "date": "2026-05-20 14:37",
     "questions_count": 1,
     "duration_seconds": 7
@@ -174,7 +174,7 @@
     "type": "coding",
     "role": "Developer",
     "topic": "Quantum Network Optimization",
-    "score": 17,
+    "score": 17.0,
     "date": "2026-05-20 14:38",
     "questions_count": 1,
     "duration_seconds": 52
@@ -184,9 +184,49 @@
     "type": "quiz",
     "role": "Placement Aptitude",
     "topic": "Number System",
-    "score": 20,
+    "score": 20.0,
     "date": "2026-05-20 14:52",
     "questions_count": 5,
     "duration_seconds": 240
+  },
+  {
+    "id": 20,
+    "type": "interview",
+    "role": "Frontend Developer",
+    "topic": "System Design",
+    "score": 100.0,
+    "date": "2026-05-20 21:55",
+    "questions_count": 5,
+    "duration_seconds": 96
+  },
+  {
+    "id": 21,
+    "type": "coding",
+    "role": "Developer",
+    "topic": "Two Sum",
+    "score": 17.0,
+    "date": "2026-05-20 21:57",
+    "questions_count": 1,
+    "duration_seconds": 9
+  },
+  {
+    "id": 22,
+    "type": "quiz",
+    "role": "Placement Aptitude",
+    "topic": "Reading Comprehension",
+    "score": 0.0,
+    "date": "2026-05-20 21:58",
+    "questions_count": 5,
+    "duration_seconds": 240
+  },
+  {
+    "id": 23,
+    "type": "group_discussion",
+    "role": "GD Prep",
+    "topic": "The Ethical Implications of AI in Hiring Practices",
+    "score": 17.0,
+    "date": "2026-05-20 21:59",
+    "questions_count": 1,
+    "duration_seconds": 300
   }
 ]
