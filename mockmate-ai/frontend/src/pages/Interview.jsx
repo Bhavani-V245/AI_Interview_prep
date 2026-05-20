@@ -74,8 +74,9 @@ const Interview = () => {
 
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null;
     if (SpeechRecognition) {
-      const rec = new SpeechRecognition();
+      rec = new SpeechRecognition();
       rec.continuous = true;
       rec.interimResults = false;
 
@@ -107,6 +108,16 @@ const Interview = () => {
 
       recognitionRef.current = rec;
     }
+
+    return () => {
+      if (rec) {
+        try {
+          rec.stop();
+        } catch (e) {
+          // Already stopped
+        }
+      }
+    };
   }, [currentIdx]);
 
   const toggleListening = () => {
