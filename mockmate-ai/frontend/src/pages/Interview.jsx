@@ -165,9 +165,26 @@ const Interview = () => {
       } else {
         setStep('results');
         toast.success('Interview complete! Analyzing final results...');
-        const avgScore = Object.values({ ...feedback, [currentIdx]: res.data }).reduce((sum, f) => sum + (f?.score || 0), 0) / questions.length;
+        
+        const feedbackValues = Object.values({ ...feedback, [currentIdx]: res.data });
+        const parseScore = (val) => {
+          if (val === undefined || val === null) return 0;
+          if (typeof val === 'number') return val;
+          const s = String(val).trim();
+          if (s.includes('/')) {
+            const parts = s.split('/');
+            const num = parseFloat(parts[0]);
+            const den = parseFloat(parts[1]);
+            if (!isNaN(num) && !isNaN(den) && den > 0) return (num / den) * 10;
+          }
+          const p = parseFloat(s);
+          return isNaN(p) ? 0 : p;
+        };
+        
+        const avgScore = feedbackValues.reduce((sum, f) => sum + parseScore(f?.score), 0) / questions.length;
         const userStr = localStorage.getItem('user');
         const userEmail = userStr ? JSON.parse(userStr).email : null;
+        
         axios.post('/api/interview/save-session', {
           email: userEmail,
           type: 'interview',

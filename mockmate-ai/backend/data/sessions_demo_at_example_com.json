@@ -178,5 +178,15 @@
     "date": "2026-05-20 14:38",
     "questions_count": 1,
     "duration_seconds": 52
+  },
+  {
+    "id": 19,
+    "type": "quiz",
+    "role": "Placement Aptitude",
+    "topic": "Number System",
+    "score": 20,
+    "date": "2026-05-20 14:52",
+    "questions_count": 5,
+    "duration_seconds": 240
   }
 ]

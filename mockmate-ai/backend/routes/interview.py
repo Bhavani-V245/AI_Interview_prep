@@ -74,9 +74,17 @@ def _load_sessions(email=None):
             sessions = json.load(f)
             modified = False
             for s in sessions:
-                if s.get('type') in ('coding', 'interview', 'voice') and s.get('score', 0) <= 10.0:
-                    s['score'] = round(s['score'] * 10, 2)
+                score_val = s.get('score')
+                try:
+                    score_num = float(score_val) if score_val is not None else 0.0
+                except (ValueError, TypeError):
+                    score_num = 0.0
+                
+                if s.get('type') in ('coding', 'interview', 'voice') and score_num <= 10.0:
+                    s['score'] = round(score_num * 10, 2)
                     modified = True
+                else:
+                    s['score'] = round(score_num, 2)
             if modified:
                 _save_sessions(sessions, email)
             return sessions
