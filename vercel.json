@@ -23,7 +23,7 @@
       "dest": "/mockmate-ai/frontend/assets/$1"
     },
     {
-      "src": "/(.*\.(json|ico|png|jpg|svg|css|js))",
+      "src": "/(.*\\.(json|ico|png|jpg|svg|css|js))",
       "dest": "/mockmate-ai/frontend/$1"
     },
     {
