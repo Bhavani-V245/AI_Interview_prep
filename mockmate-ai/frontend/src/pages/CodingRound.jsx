@@ -183,7 +183,11 @@ const CodingRound = () => {
       console.error = originalError;
       console.warn = originalWarn;
 
-      setConsoleOutput(logs.length > 0 ? logs.join('\n') : '> Code executed successfully.\n> Tip: Use console.log() to print the results of your function!');
+      setConsoleOutput(
+        logs.length > 0 
+          ? logs.join('\n') 
+          : `> Code executed successfully (0 errors).\n> Warning: No logs detected in console.\n> Tip: Ensure you call your function and wrap it in console.log() at the bottom of the editor to print local test outputs, e.g.:\n  console.log(myFunction(testValue));`
+      );
       toast.success('Code executed!');
     } catch (err) {
       // Restore standard console immediately
