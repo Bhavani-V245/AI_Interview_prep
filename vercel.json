@@ -19,16 +19,11 @@
       "dest": "mockmate-ai/backend/app.py"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/mockmate-ai/frontend/assets/$1"
-    },
-    {
-      "src": "/(.*\\.(json|ico|png|jpg|svg|css|js))",
-      "dest": "/mockmate-ai/frontend/$1"
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "/mockmate-ai/frontend/index.html"
+      "dest": "/index.html"
     }
   ]
 }
