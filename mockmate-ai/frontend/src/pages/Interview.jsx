@@ -157,6 +157,11 @@ const Interview = () => {
         question: questions[currentIdx],
         answer: currentAnswer
       });
+      
+      if (!res.data || typeof res.data !== 'object' || res.data.score === undefined) {
+        throw new Error("Invalid or unparseable feedback payload received from server.");
+      }
+      
       setFeedback({ ...feedback, [currentIdx]: res.data });
       
       if (currentIdx < questions.length - 1) {
