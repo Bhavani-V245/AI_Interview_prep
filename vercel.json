@@ -16,7 +16,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/mockmate-ai/backend/app.py"
+      "dest": "mockmate-ai/backend/app.py"
     },
     {
       "src": "/assets/(.*)",
