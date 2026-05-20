@@ -16,11 +16,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "mockmate-ai/backend/app.py"
+      "dest": "/mockmate-ai/backend/app.py"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/mockmate-ai/frontend/assets/$1"
+    },
+    {
+      "src": "/(.*\.(json|ico|png|jpg|svg|css|js))",
+      "dest": "/mockmate-ai/frontend/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/mockmate-ai/frontend/index.html"
     }
   ]
 }

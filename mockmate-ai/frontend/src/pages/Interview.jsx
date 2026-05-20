@@ -213,7 +213,7 @@ const Interview = () => {
 
             <div className="neon-glass p-12 rounded-[48px] border-indigo-500/10 animated-border">
               <div className="space-y-10 relative z-10">
-                <div className="space-y-4">
+                 <div className="space-y-4">
                   <label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 ml-1">Target Position</label>
                   <input 
                     type="text" 
@@ -222,6 +222,18 @@ const Interview = () => {
                     onChange={e => setConfig({...config, role: e.target.value})}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 focus:border-indigo-500 outline-none transition-all text-white placeholder:text-zinc-800 font-bold"
                   />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {['Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Data Scientist', 'DevOps Engineer'].map(sug => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={() => setConfig({...config, role: sug})}
+                        className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/30 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-indigo-400 transition-all cursor-pointer"
+                      >
+                        {sug}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -233,6 +245,18 @@ const Interview = () => {
                     onChange={e => setConfig({...config, topic: e.target.value})}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 focus:border-indigo-500 outline-none transition-all text-white placeholder:text-zinc-800 font-bold"
                   />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {['React', 'Node.js', 'System Design', 'SQL', 'Algorithms'].map(sug => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={() => setConfig({...config, topic: sug})}
+                        className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/30 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-indigo-400 transition-all cursor-pointer"
+                      >
+                        {sug}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-4">
