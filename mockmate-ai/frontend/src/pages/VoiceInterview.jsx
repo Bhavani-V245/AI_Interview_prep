@@ -1,25 +1,24 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Volume2, Square, Loader2, Brain, CheckCircle2, RefreshCcw, ChevronRight } from 'lucide-react';
+import { Mic, Volume2, Square, Loader2, Brain, CheckCircle2, RefreshCcw, ChevronRight, Sparkles, ChevronDown } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
-const DEFAULT_QUESTIONS = [
-  "Tell me about a complex project you've worked on recently.",
-  "What is your approach to resolving conflict within a team?",
-  "Where do you see yourself in five years?",
-  "Describe a time you overcame a major technical challenge.",
-  "How do you prioritize tasks when working under tight deadlines?"
-];
+const ROLES = ['Software Engineer', 'Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Data Scientist', 'Product Manager', 'DevOps Engineer', 'UI/UX Designer', 'Data Analyst', 'Cloud Architect'];
+const TOPICS = ['React', 'Node.js', 'Python', 'System Design', 'SQL', 'Machine Learning', 'Docker/Kubernetes', 'JavaScript', 'REST APIs', 'Behavioral/HR', 'Leadership', 'Communication', 'Problem Solving'];
+const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
 const VoiceInterview = () => {
+  const [step, setStep] = useState('setup'); // setup | interview
+  const [config, setConfig] = useState({ role: 'Software Engineer', topic: 'Behavioral/HR', difficulty: 'Intermediate' });
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [questions] = useState(DEFAULT_QUESTIONS);
+  const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [voicesReady, setVoicesReady] = useState(false);
   const [micSupported, setMicSupported] = useState(true);
 
@@ -54,6 +53,36 @@ const VoiceInterview = () => {
       toast.error('Voice input requires Chrome or Edge browser.');
     }
   }, []);
+
+  // ─── Generate fresh questions from AI ────────────────────────────────
+  const generateQuestions = async () => {
+    setGenerating(true);
+    try {
+      const res = await axios.post('/api/interview/generate', {
+        role: config.role,
+        topic: config.topic,
+        difficulty: config.difficulty,
+        num_questions: 10
+      });
+      const qs = res.data?.questions;
+      if (Array.isArray(qs) && qs.length > 0) {
+        setQuestions(qs);
+        setCurrentIdx(0);
+        setTranscript('');
+        transcriptRef.current = '';
+        setFeedback(null);
+        setStep('interview');
+        toast.success(`${qs.length} unique questions ready!`);
+      } else {
+        throw new Error('No questions returned');
+      }
+    } catch (err) {
+      toast.error('Could not generate questions. Check your internet connection.');
+      console.error('Generate questions error:', err);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   // ─── Create a fresh SpeechRecognition instance each time ─────────────
   const createRecognition = useCallback(() => {
@@ -209,8 +238,14 @@ const VoiceInterview = () => {
       setIsListening(false);
     }
 
-    const finalAnswer = transcriptRef.current.trim() || transcript.trim();
-    if (!finalAnswer) return toast.warning('No answer recorded. Please speak and try again.');
+    const rawAnswer = transcriptRef.current.trim() || transcript.trim();
+    // Allow empty answers — AI will explain how to answer the question
+    const finalAnswer = rawAnswer || '[No answer provided. Please explain what a great answer to this question would look like, including a full STAR-method model answer.]';
+    const isSkipped = !rawAnswer;
+
+    if (isSkipped) {
+      toast.info('No answer recorded — AI will show you how to answer this question!');
+    }
 
     setLoading(true);
     try {
@@ -271,11 +306,84 @@ const VoiceInterview = () => {
 
   return (
     <div className="p-6 md:p-10 max-w-4xl mx-auto min-h-screen flex flex-col justify-center">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold mb-3 flex items-center justify-center gap-3">
-          <Mic className="text-indigo-500" /> Voice <span className="text-gradient">Interview Mode</span>
+
+      {/* ── SETUP SCREEN ─────────────────────────────────────────────── */}
+      {step === 'setup' && (
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+          <div className="text-center">
+            <h1 className="text-5xl font-black mb-4 flex items-center justify-center gap-3">
+              <Mic className="text-indigo-500" /> Voice <span className="text-gradient">Interview</span>
+            </h1>
+            <p className="text-gray-400 text-lg">Configure your session — AI generates 10 unique questions every time.</p>
+          </div>
+
+          <div className="glass p-8 rounded-[40px] border border-white/10 space-y-6">
+            {/* Role */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-indigo-400 mb-2">Your Role</label>
+              <div className="relative">
+                <select
+                  value={config.role}
+                  onChange={e => setConfig(c => ({ ...c, role: e.target.value }))}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white font-semibold appearance-none focus:outline-none focus:border-indigo-500/50 cursor-pointer"
+                >
+                  {ROLES.map(r => <option key={r} value={r} className="bg-gray-900">{r}</option>)}
+                </select>
+                <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Topic */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-violet-400 mb-2">Focus Topic</label>
+              <div className="relative">
+                <select
+                  value={config.topic}
+                  onChange={e => setConfig(c => ({ ...c, topic: e.target.value }))}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white font-semibold appearance-none focus:outline-none focus:border-violet-500/50 cursor-pointer"
+                >
+                  {TOPICS.map(t => <option key={t} value={t} className="bg-gray-900">{t}</option>)}
+                </select>
+                <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Difficulty */}
+            <div>
+              <label className="block text-xs font-black uppercase tracking-widest text-emerald-400 mb-2">Difficulty</label>
+              <div className="flex gap-3 flex-wrap">
+                {DIFFICULTIES.map(d => (
+                  <button
+                    key={d}
+                    onClick={() => setConfig(c => ({ ...c, difficulty: d }))}
+                    className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${config.difficulty === d ? 'bg-indigo-600 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                  >{d}</button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={generateQuestions}
+              disabled={generating}
+              className="w-full btn-vibrant py-4 text-lg flex items-center justify-center gap-3 mt-4"
+            >
+              {generating
+                ? <><Loader2 className="animate-spin" size={22} /> Generating 10 unique questions...</>
+                : <><Sparkles size={22} /> Start Voice Interview</>
+              }
+            </button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── INTERVIEW SCREEN ─────────────────────────────────────────── */}
+      {step === 'interview' && (
+      <div>
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold mb-2 flex items-center justify-center gap-3">
+          <Mic className="text-indigo-500" /> Voice <span className="text-gradient">Interview</span>
         </h1>
-        <p className="text-gray-400">Speak naturally and improve your verbal communication skills.</p>
+        <p className="text-gray-500 text-sm">{config.role} · {config.topic} · {config.difficulty}</p>
         {!micSupported && (
           <div className="mt-3 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-sm font-semibold">
             ⚠️ Voice input requires Chrome or Edge browser for full functionality.
@@ -442,6 +550,28 @@ const VoiceInterview = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Start New Session */}
+      <div className="mt-8 text-center">
+        <button
+          onClick={() => {
+            window.speechSynthesis.cancel();
+            if (recognitionRef.current) { recognitionRef.current.stop(); recognitionRef.current = null; }
+            setStep('setup');
+            setCurrentIdx(0);
+            setTranscript('');
+            transcriptRef.current = '';
+            setFeedback(null);
+            setIsListening(false);
+          }}
+          className="btn-secondary px-8 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 mx-auto"
+        >
+          <RefreshCcw size={16} /> New Session (Different Questions)
+        </button>
+      </div>
+
+      </div>
+      )}
     </div>
   );
 };
