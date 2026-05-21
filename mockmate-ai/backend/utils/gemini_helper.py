@@ -187,10 +187,13 @@ def generate_interview_questions(role, topic, difficulty, num_questions=5):
     You are an expert interviewer. Generate {num_questions} interview questions for the role of {role} 
     focusing on the topic: {topic}. The difficulty level should be {difficulty}.
     
-    CRITICAL INSTRUCTION: Ensure these questions are highly unique, unconventional, and different every time. Do NOT repeat standard generic questions. Probe deep technical insights.
+    CRITICAL INSTRUCTIONS:
+    1. The FIRST question MUST ALWAYS be a personal/behavioral introduction question (e.g., "Tell me about yourself and your experience...", "Walk me through your background", "Why are you interested in this role?").
+    2. The remaining questions should focus on the technical topic: {topic}.
+    3. Ensure the technical questions are highly unique, unconventional, and different every time. Do NOT repeat standard generic questions. Probe deep technical insights.
     
     Return the questions as a JSON array of strings.
-    Example: ["Question 1", "Question 2"]
+    Example: ["Tell me about yourself...", "Question 2", "Question 3"]
     """
     if USE_GITHUB_MODELS and GITHUB_TOKEN:
         try:
@@ -226,19 +229,25 @@ def generate_interview_questions(role, topic, difficulty, num_questions=5):
 
 def get_feedback(question, answer):
     prompt = f"""
-    You are an expert interviewer. Evaluate the candidate's answer for BOTH technical/domain depth AND essential soft skills (communication, clarity, structure, professional vocabulary, confidence, and STAR method application).
+    You are a strict, expert technical interviewer. Evaluate the candidate's answer for BOTH technical/domain depth AND essential soft skills (communication, clarity, structure, professional vocabulary, confidence, and STAR method application).
     
     Question: {question}
-    Answer: {answer}
+    Candidate's Answer: {answer}
     
+    CRITICAL INSTRUCTIONS:
+    1. Base your ENTIRE feedback STRICTLY on the Candidate's Answer provided above.
+    2. Your "strengths" and "areas_for_improvement" MUST quote or directly reference specific things the candidate said. DO NOT give generic, templated advice.
+    3. If the candidate's answer is extremely short, irrelevant, or says "I don't know", the score MUST be very low (e.g., 1 to 3), and you must specifically state that they failed to answer the question.
+    4. If they provided a good answer, praise the specific technical concepts they correctly mentioned.
+
     You MUST provide a comprehensive analysis returning exactly a JSON object with the following fields:
     - score: Overall performance score out of 10 (float).
     - technical_score: Technical accuracy and domain depth score out of 10 (float).
     - soft_skills_score: Communication, delivery structure, professional confidence, and vocabulary score out of 10 (float).
-    - strengths: Clear bulleted points describing the strengths of the candidate's answer.
-    - areas_for_improvement: Clear bulleted points detailing areas of optimization.
+    - strengths: Clear bulleted points describing the specific strengths of THIS exact answer.
+    - areas_for_improvement: Clear bulleted points detailing specific areas they missed or got wrong in THIS answer.
     - communication_feedback: Detailed advisory feedback addressing their tone, vocabulary level, delivery pace, and how they structured their narrative (e.g., STAR structure).
-    - model_answer: An exemplary professional answer utilizing the STAR (Situation, Task, Action, Result) response format.
+    - model_answer: An exemplary professional answer utilizing the STAR (Situation, Task, Action, Result) response format tailored to the question.
     
     CRITICAL: Respond ONLY with a valid, clean JSON string containing these exact keys. Do not include markdown wraps unless necessary, but format properly.
     """
