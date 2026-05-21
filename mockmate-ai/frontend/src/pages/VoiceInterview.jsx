@@ -214,14 +214,16 @@ const VoiceInterview = () => {
   };
 
   // ─── Auto-read feedback after analysis ───────────────────────────────
+  const parseListText = (val, fallback = '') => {
+    if (!val) return fallback;
+    if (Array.isArray(val)) return val.join('. ');
+    return String(val);
+  };
+
   const speakFeedback = (feedbackData) => {
     const score = Number(feedbackData.score || 0).toFixed(1);
-    const strengths = typeof feedbackData.strengths === 'string'
-      ? feedbackData.strengths
-      : (feedbackData.feedback || '');
-    const improvements = typeof feedbackData.areas_for_improvement === 'string'
-      ? feedbackData.areas_for_improvement
-      : (feedbackData.improvement || '');
+    const strengths = parseListText(feedbackData.strengths, feedbackData.feedback);
+    const improvements = parseListText(feedbackData.areas_for_improvement, feedbackData.improvement);
 
     const text = `Your score is ${score} out of 10. 
       Strengths: ${strengths.slice(0, 300)}. 
@@ -551,15 +553,21 @@ const VoiceInterview = () => {
             <div className="grid md:grid-cols-2 gap-6 text-sm">
               <div>
                 <h4 className="font-bold mb-2 text-emerald-400 uppercase tracking-wider text-xs">✅ Strengths</h4>
-                <p className="text-gray-400 leading-relaxed whitespace-pre-line">
-                  {typeof feedback.strengths === 'string' ? feedback.strengths : (feedback.feedback || '')}
-                </p>
+                <div className="text-gray-400 leading-relaxed whitespace-pre-line">
+                  {Array.isArray(feedback.strengths) 
+                    ? <ul className="list-disc pl-4 space-y-1">{feedback.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                    : <p>{feedback.strengths || feedback.feedback || 'No strengths provided.'}</p>
+                  }
+                </div>
               </div>
               <div>
                 <h4 className="font-bold mb-2 text-violet-400 uppercase tracking-wider text-xs">🔧 Improvements</h4>
-                <p className="text-gray-400 leading-relaxed whitespace-pre-line">
-                  {typeof feedback.areas_for_improvement === 'string' ? feedback.areas_for_improvement : (feedback.improvement || '')}
-                </p>
+                <div className="text-gray-400 leading-relaxed whitespace-pre-line">
+                  {Array.isArray(feedback.areas_for_improvement) 
+                    ? <ul className="list-disc pl-4 space-y-1">{feedback.areas_for_improvement.map((s, i) => <li key={i}>{s}</li>)}</ul>
+                    : <p>{feedback.areas_for_improvement || feedback.improvement || 'No improvements provided.'}</p>
+                  }
+                </div>
               </div>
               {feedback.model_answer && (
                 <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t border-white/5">
