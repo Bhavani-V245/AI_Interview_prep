@@ -187,8 +187,13 @@ const Interview = () => {
         };
         
         const avgScore = feedbackValues.reduce((sum, f) => sum + parseScore(f?.score), 0) / questions.length;
-        const userStr = localStorage.getItem('user');
-        const userEmail = userStr ? JSON.parse(userStr).email : null;
+        let userEmail = null;
+        try {
+          const userStr = localStorage.getItem('user');
+          if (userStr && userStr !== 'undefined') {
+            userEmail = JSON.parse(userStr).email;
+          }
+        } catch(e) {}
         
         axios.post('/api/interview/save-session', {
           email: userEmail,
@@ -241,8 +246,13 @@ const Interview = () => {
         };
         
         const avgScore = feedbackValues.reduce((sum, f) => sum + parseScore(f?.score), 0) / questions.length;
-        const userStr = localStorage.getItem('user');
-        const userEmail = userStr ? JSON.parse(userStr).email : null;
+        let userEmail = null;
+        try {
+          const userStr = localStorage.getItem('user');
+          if (userStr && userStr !== 'undefined') {
+            userEmail = JSON.parse(userStr).email;
+          }
+        } catch(e) {}
         
         axios.post('/api/interview/save-session', {
           email: userEmail,
@@ -505,66 +515,83 @@ const Interview = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-black/30 divide-y divide-white/5">
-                    {/* Performance Grades */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-12 bg-white/[0.01]">
-                      <div className="neon-glass p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Overall Performance</span>
-                        <div className="text-4xl font-black text-white">{feedback[i]?.score || 'N/A'}/10</div>
-                      </div>
-                      
-                      <div className="neon-glass p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Technical Depth</span>
-                        <div className="text-4xl font-black text-emerald-400">{feedback[i]?.technical_score || feedback[i]?.score || 'N/A'}/10</div>
-                      </div>
-                      
-                      <div className="neon-glass p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-                        <span className="text-[10px] font-black text-fuchsia-400 uppercase tracking-widest mb-2">Soft Skills & Articulation</span>
-                        <div className="text-4xl font-black text-fuchsia-400">{feedback[i]?.soft_skills_score || feedback[i]?.score || 'N/A'}/10</div>
-                      </div>
-                    </div>
-
-                    {/* Qualitative Review */}
-                    <div className="grid md:grid-cols-2 divide-x divide-white/5">
-                      <div className="p-12">
-                        <h4 className="font-black text-emerald-400 flex items-center gap-3 uppercase text-xs tracking-[0.2em] mb-6">
-                          <CheckCircle2 size={16} /> Key Strengths
-                        </h4>
-                        <p className="text-zinc-400 text-base leading-relaxed font-semibold whitespace-pre-line">{feedback[i]?.feedback || feedback[i]?.strengths}</p>
-                      </div>
-                      <div className="p-12">
-                        <h4 className="font-black text-amber-500 flex items-center gap-3 uppercase text-xs tracking-[0.2em] mb-6">
-                          <AlertCircle size={16} /> Optimization Plan
-                        </h4>
-                        <p className="text-zinc-400 text-base leading-relaxed font-semibold whitespace-pre-line">{feedback[i]?.improvement || feedback[i]?.areas_for_improvement}</p>
-                      </div>
-                    </div>
-
-                    {/* Soft Skills & Articulation Advisory Panel */}
-                    {feedback[i]?.communication_feedback && (
-                      <div className="p-12 bg-purple-500/[0.02]">
-                        <h4 className="font-black text-purple-400 flex items-center gap-3 uppercase text-xs tracking-[0.2em] mb-4">
-                          🎙️ Articulation & Speech Advisory
-                        </h4>
-                        <p className="text-zinc-300 text-sm leading-relaxed font-semibold">{feedback[i]?.communication_feedback}</p>
-                      </div>
-                    )}
-
-                    {/* Collapsible Exemplary Model Answer (STAR Format) */}
-                    {feedback[i]?.model_answer && (
-                      <div className="p-12 bg-white/[0.02]">
-                        <details className="group">
-                          <summary className="font-black text-white flex items-center justify-between cursor-pointer list-none uppercase text-xs tracking-[0.2em]">
-                            <span className="flex items-center gap-3">💡 Read Exemplary Model Answer (STAR Method)</span>
-                            <span className="transition-transform group-open:rotate-180 font-bold">▼</span>
-                          </summary>
-                          <div className="mt-6 p-6 rounded-2xl bg-black/60 border border-white/5 text-zinc-300 text-sm leading-relaxed whitespace-pre-line font-medium">
-                            {feedback[i]?.model_answer}
+                  {(() => {
+                    const safeRender = (val) => {
+                      if (!val) return '';
+                      if (typeof val === 'string' || typeof val === 'number') return val;
+                      if (Array.isArray(val)) return val.map(v => typeof v === 'object' ? JSON.stringify(v) : v).join('\n');
+                      if (typeof val === 'object') return JSON.stringify(val);
+                      return String(val);
+                    };
+                    return (
+                      <div className="bg-black/30 divide-y divide-white/5">
+                        {/* Performance Grades */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-12 bg-white/[0.01]">
+                          <div className="neon-glass p-6 rounded-2xl flex flex-col items-center justify-center text-center">
+                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Overall Performance</span>
+                            <div className="text-4xl font-black text-white">{feedback[i]?.score || 'N/A'}/10</div>
                           </div>
-                        </details>
+                          
+                          <div className="neon-glass p-6 rounded-2xl flex flex-col items-center justify-center text-center">
+                            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Technical Depth</span>
+                            <div className="text-4xl font-black text-emerald-400">{feedback[i]?.technical_score || feedback[i]?.score || 'N/A'}/10</div>
+                          </div>
+                          
+                          <div className="neon-glass p-6 rounded-2xl flex flex-col items-center justify-center text-center">
+                            <span className="text-[10px] font-black text-fuchsia-400 uppercase tracking-widest mb-2">Soft Skills & Articulation</span>
+                            <div className="text-4xl font-black text-fuchsia-400">{feedback[i]?.soft_skills_score || feedback[i]?.score || 'N/A'}/10</div>
+                          </div>
+                        </div>
+
+                        {/* Qualitative Review */}
+                        <div className="grid md:grid-cols-2 divide-x divide-white/5">
+                          <div className="p-12">
+                            <h4 className="font-black text-emerald-400 flex items-center gap-3 uppercase text-xs tracking-[0.2em] mb-6">
+                              <CheckCircle2 size={16} /> Key Strengths
+                            </h4>
+                            <p className="text-zinc-400 text-base leading-relaxed font-semibold whitespace-pre-line">
+                              {safeRender(feedback[i]?.feedback || feedback[i]?.strengths)}
+                            </p>
+                          </div>
+                          <div className="p-12">
+                            <h4 className="font-black text-amber-500 flex items-center gap-3 uppercase text-xs tracking-[0.2em] mb-6">
+                              <AlertCircle size={16} /> Optimization Plan
+                            </h4>
+                            <p className="text-zinc-400 text-base leading-relaxed font-semibold whitespace-pre-line">
+                              {safeRender(feedback[i]?.improvement || feedback[i]?.areas_for_improvement)}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Soft Skills & Articulation Advisory Panel */}
+                        {feedback[i]?.communication_feedback && (
+                          <div className="p-12 bg-purple-500/[0.02]">
+                            <h4 className="font-black text-purple-400 flex items-center gap-3 uppercase text-xs tracking-[0.2em] mb-4">
+                              🎙️ Articulation & Speech Advisory
+                            </h4>
+                            <p className="text-zinc-300 text-sm leading-relaxed font-semibold">
+                              {safeRender(feedback[i]?.communication_feedback)}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Collapsible Exemplary Model Answer (STAR Format) */}
+                        {feedback[i]?.model_answer && (
+                          <div className="p-12 bg-white/[0.02]">
+                            <details className="group">
+                              <summary className="font-black text-white flex items-center justify-between cursor-pointer list-none uppercase text-xs tracking-[0.2em]">
+                                <span className="flex items-center gap-3">💡 Read Exemplary Model Answer (STAR Method)</span>
+                                <span className="transition-transform group-open:rotate-180 font-bold">▼</span>
+                              </summary>
+                              <div className="mt-6 p-6 rounded-2xl bg-black/60 border border-white/5 text-zinc-300 text-sm leading-relaxed whitespace-pre-line font-medium">
+                                {safeRender(feedback[i]?.model_answer)}
+                              </div>
+                            </details>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
