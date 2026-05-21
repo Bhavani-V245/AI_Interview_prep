@@ -118,8 +118,20 @@ const CodingRound = () => {
   }, []);
 
   useEffect(() => {
-    if (problem && problem.starterCode) {
-      setCode(problem.starterCode[language] || problem.starterCode.javascript);
+    if (problem) {
+      let newCode = problem.starterCode?.[language];
+      if (!newCode) {
+        if (language === 'cpp') {
+          newCode = `// ${problem.title}\n#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your C++ solution here\n    \n    return 0;\n}`;
+        } else if (language === 'java') {
+          newCode = `// ${problem.title}\npublic class Main {\n    public static void main(String[] args) {\n        // Write your Java solution here\n        \n    }\n}`;
+        } else if (language === 'python') {
+          newCode = `# ${problem.title}\ndef solution():\n    # Write your Python solution here\n    pass`;
+        } else {
+          newCode = `// ${problem.title}\nfunction solution() {\n  // Write your JavaScript solution here\n\n}`;
+        }
+      }
+      setCode(newCode);
     }
     setConsoleOutput('> Ready. Write your solution and click Run Code.');
     setEvaluation(null);

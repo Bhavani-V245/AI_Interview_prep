@@ -1352,7 +1352,19 @@ const CodingPractice = () => {
   // Handle starter code selection when question/language shifts
   useEffect(() => {
     if (activeQuestion) {
-      setCode(activeQuestion.starterCode[language] || activeQuestion.starterCode.javascript);
+      let newCode = activeQuestion.starterCode?.[language];
+      if (!newCode) {
+        if (language === 'cpp') {
+          newCode = `// ${activeQuestion.title}\n#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your C++ solution here\n    \n    return 0;\n}`;
+        } else if (language === 'java') {
+          newCode = `// ${activeQuestion.title}\npublic class Main {\n    public static void main(String[] args) {\n        // Write your Java solution here\n        \n    }\n}`;
+        } else if (language === 'python') {
+          newCode = `# ${activeQuestion.title}\ndef solution():\n    # Write your Python solution here\n    pass`;
+        } else {
+          newCode = `// ${activeQuestion.title}\nfunction solution() {\n  // Write your JavaScript solution here\n\n}`;
+        }
+      }
+      setCode(newCode);
       setConsoleOutput('> Ready. Submit code to evaluated via the AI Evaluator.');
       setEvaluation(null);
       setIsExpanded(false);

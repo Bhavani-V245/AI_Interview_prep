@@ -14,11 +14,15 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(() => localStorage.getItem('sidebar_collapsed') === 'true');
+  const { theme, toggleTheme } = useTheme();
 
   const toggleCollapse = () => {
     const nextState = !isCollapsed;
@@ -88,11 +92,24 @@ const Sidebar = () => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-white/5">
+      <div className="p-4 border-t border-white/5 space-y-2">
+        <button 
+          onClick={toggleTheme}
+          title={isCollapsed ? (theme === 'dark' ? 'Light Mode' : 'Dark Mode') : undefined}
+          className={`flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-500/10 rounded-2xl transition-all duration-300 ${isCollapsed ? 'justify-center' : ''}`}
+        >
+          {theme === 'dark' ? <Sun size={20} className="shrink-0" /> : <Moon size={20} className="shrink-0" />}
+          {!isCollapsed && (
+            <span className="font-semibold tracking-wide truncate">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+          )}
+        </button>
+
         <button 
           onClick={() => {
-            localStorage.removeItem('user');
-            window.location.href = '/';
+            if (window.confirm("Are you sure you want to log out?")) {
+              localStorage.removeItem('user');
+              window.location.href = '/';
+            }
           }}
           title={isCollapsed ? "Logout" : undefined}
           className={`flex items-center gap-3 px-4 py-3 w-full text-slate-400 hover:text-pink-400 hover:bg-pink-500/10 rounded-2xl transition-all duration-300 ${isCollapsed ? 'justify-center' : ''}`}
