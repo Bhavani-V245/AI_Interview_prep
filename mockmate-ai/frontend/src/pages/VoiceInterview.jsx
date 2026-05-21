@@ -126,54 +126,76 @@ const VoiceInterview = () => {
     }
   };
 
-  // ─── Speak question (with voice load wait) ───────────────────────────
+  // ─── Speak question (Chrome-bug-proof) ──────────────────────────────
   const speakQuestion = () => {
     if (!window.speechSynthesis) {
       toast.error('Text-to-speech not supported in this browser.');
       return;
     }
 
-    // Cancel anything currently playing
+    // Step 1: Cancel & reset
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
 
-    const speak = () => {
+    // Step 2: Wait for cancel to settle (Chrome needs this gap)
+    setTimeout(() => {
+      const voices = window.speechSynthesis.getVoices();
       const utterance = new SpeechSynthesisUtterance(questions[currentIdx]);
       utterance.lang = 'en-US';
-      utterance.rate = 0.92;
+      utterance.rate = 0.9;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
 
-      // Pick a good English voice if available
-      const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(v =>
-        v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Premium'))
-      ) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+      // Pick best English voice
+      const preferred =
+        voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+        voices.find(v => v.lang === 'en-US') ||
+        voices.find(v => v.lang.startsWith('en')) ||
+        null;
       if (preferred) utterance.voice = preferred;
 
       utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        clearInterval(keepAlive);
+      };
       utterance.onerror = (e) => {
         setIsSpeaking(false);
-        if (e.error !== 'interrupted') {
-          toast.error('Speaker error. Please check your device volume.');
+        clearInterval(keepAlive);
+        if (e.error !== 'interrupted' && e.error !== 'canceled') {
+          toast.error('Speaker error. Make sure your device volume is on.');
         }
       };
 
-      window.speechSynthesis.speak(utterance);
-    };
+      // Step 3: Chrome bug fix — resume every 10s so it doesn't pause
+      const keepAlive = setInterval(() => {
+        if (!window.speechSynthesis.speaking) {
+          clearInterval(keepAlive);
+          return;
+        }
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }, 10000);
 
-    // If voices aren't loaded yet, wait for them
-    if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        setVoicesReady(true);
-        speak();
-      };
-      toast.info('Loading voices...');
-    } else {
-      speak();
-    }
+      // Step 4: Resume in case Chrome is paused, then speak
+      window.speechSynthesis.resume();
+      window.speechSynthesis.speak(utterance);
+
+      // Step 5: Verify it actually started (Chrome sometimes silently fails)
+      setTimeout(() => {
+        if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+          clearInterval(keepAlive);
+          // Retry once
+          window.speechSynthesis.cancel();
+          setTimeout(() => {
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(questions[currentIdx]));
+          }, 200);
+        }
+      }, 500);
+
+    }, 300);
   };
+
 
   // ─── Submit answer for AI feedback ──────────────────────────────────
   const submitVoiceAnswer = async () => {
