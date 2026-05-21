@@ -359,22 +359,18 @@ def evaluate_code(problem_title, problem_desc, code, language):
     import re
     # Strip comments and standard function signature template tags to see if they wrote anything
     clean_code = re.sub(r'//.*|/\*[\s\S]*?\*/|#.*|"""[\s\S]*?"""', '', code).strip()
-    placeholder_indicators = ['Write your code here', 'TODO', 'insert your solution', 'code goes here']
-    has_placeholder = any(p.lower() in code.lower() for p in placeholder_indicators)
-    
-    if not clean_code or len(clean_code) < 15 or has_placeholder:
+    if not clean_code or len(clean_code) < 10:
         return json.dumps({
             "correctness": 0,
             "efficiency": 0,
             "code_quality": 0,
             "overall_score": 0.0,
-            "feedback": "⚠️ System Diagnostic: You did not write any functional code! Attempting to compile thin air is a bold design choice, but our neural compiler cannot evaluate blank space. Please write a real algorithm solution before pushing to production!",
+            "feedback": "⚠️ System Diagnostic: You did not write enough functional code! Please write your algorithm solution before submitting.",
             "time_complexity": "N/A",
             "space_complexity": "N/A",
             "suggestions": [
                 "Please implement the actual function logic inside the editor.",
-                "Avoid submitting empty text files or comments-only templates.",
-                "Review the problem specification and declare the necessary return variables."
+                "Avoid submitting empty text files or comments-only templates."
             ]
         })
 
@@ -395,7 +391,7 @@ def evaluate_code(problem_title, problem_desc, code, language):
     - efficiency: score out of 10  
     - code_quality: score out of 10
     - overall_score: average score out of 10
-    - feedback: concise detailed feedback string (max 80 words)
+    - feedback: Concise detailed feedback string (max 100 words). If the logic is wrong or has a bug, specifically explain WHERE the error is (line or block) and WHY it is wrong.
     - time_complexity: estimated time complexity string
     - space_complexity: estimated space complexity string
     - suggestions: array of 2 to 3 concise suggestions

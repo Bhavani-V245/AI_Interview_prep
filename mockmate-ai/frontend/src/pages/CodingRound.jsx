@@ -172,7 +172,8 @@ const CodingRound = () => {
 
   const runCode = () => {
     if (language !== 'javascript') {
-      setConsoleOutput(`> [Info] Client-side execution is only available for JavaScript.\n> Use Submit to get AI evaluation for ${language} code.`);
+      setConsoleOutput(`> [Info] Client-side execution is only available for JavaScript.\n> Auto-triggering AI Evaluation for ${language}...`);
+      submitCode();
       return;
     }
     setEvaluation(null); // Instantly flip back to console output view!
@@ -223,7 +224,11 @@ const CodingRound = () => {
         language: language
       });
       setEvaluation(res.data);
-      setConsoleOutput(`> AI Evaluation Complete!\n> Overall Score: ${res.data.overall_score}/10\n> Time Complexity: ${res.data.time_complexity}\n> Space Complexity: ${res.data.space_complexity}`);
+      let outputStr = `> AI Evaluation Complete!\n> Overall Score: ${res.data.overall_score}/10\n> Time Complexity: ${res.data.time_complexity}\n> Space Complexity: ${res.data.space_complexity}\n\n> AI Analysis:\n${res.data.feedback}`;
+      if (res.data.suggestions && res.data.suggestions.length > 0) {
+        outputStr += `\n\n> Suggestions:\n` + res.data.suggestions.map(s => `  - ${s}`).join('\n');
+      }
+      setConsoleOutput(outputStr);
       toast.success(`Score: ${res.data.overall_score}/10`);
 
       // Save session

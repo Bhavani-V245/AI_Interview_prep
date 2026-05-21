@@ -1444,7 +1444,8 @@ const CodingPractice = () => {
 
   // Run Local Test Mock Output
   const handleRunLocalCode = () => {
-    setConsoleOutput("> Running test cases...\n\nCompiling template parameters...\n✔ Code execution completed locally.\nWarning: Submitting to AI evaluation is required to record completed status and obtain a score!");
+    setConsoleOutput("> Auto-triggering AI Evaluation to check your logic...");
+    handleSubmitCode();
   };
 
   // Evaluate Practice Code with AI
@@ -1464,7 +1465,11 @@ const CodingPractice = () => {
       setEvaluation(evalData);
       
       if (evalData.correctness >= 7 || evalData.overall_score >= 7) {
-        setConsoleOutput(`> SUCCESS! Overall Score: ${evalData.overall_score}/10\n> Correctness: ${evalData.correctness}/10\n✔ Algorithm solved successfully! Practice progress saved.`);
+        let outputStr = `> SUCCESS! Overall Score: ${evalData.overall_score}/10\n> Correctness: ${evalData.correctness}/10\n✔ Algorithm solved successfully! Practice progress saved.\n\n> AI Analysis:\n${evalData.feedback}`;
+        if (evalData.suggestions && evalData.suggestions.length > 0) {
+          outputStr += `\n\n> Suggestions:\n` + evalData.suggestions.map(s => `  - ${s}`).join('\n');
+        }
+        setConsoleOutput(outputStr);
         
         if (!solvedList.includes(activeQuestion.id)) {
           setSolvedList(prev => [...prev, activeQuestion.id]);
@@ -1472,7 +1477,11 @@ const CodingPractice = () => {
         setUnsolvedRepeatedList(prev => prev.filter(id => id !== activeQuestion.id));
         toast.success(`🎉 Excellent! You solved "${activeQuestion.title}" successfully!`);
       } else {
-        setConsoleOutput(`> FAILED. Overall Score: ${evalData.overall_score}/10\n> Correctness: ${evalData.correctness}/10\n❌ Solution did not meet target correctness criteria (>=7.0). This challenge has been marked for repetition.`);
+        let outputStr = `> FAILED. Overall Score: ${evalData.overall_score}/10\n> Correctness: ${evalData.correctness}/10\n❌ Solution did not meet target correctness criteria (>=7.0). This challenge has been marked for repetition.\n\n> Why it failed (AI Analysis):\n${evalData.feedback}`;
+        if (evalData.suggestions && evalData.suggestions.length > 0) {
+          outputStr += `\n\n> Suggestions:\n` + evalData.suggestions.map(s => `  - ${s}`).join('\n');
+        }
+        setConsoleOutput(outputStr);
         
         if (!unsolvedRepeatedList.includes(activeQuestion.id) && !solvedList.includes(activeQuestion.id)) {
           setUnsolvedRepeatedList(prev => [...prev, activeQuestion.id]);
