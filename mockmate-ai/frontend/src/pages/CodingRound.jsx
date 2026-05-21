@@ -170,10 +170,15 @@ const CodingRound = () => {
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
-  const runCode = () => {
+  const runCode = async () => {
     if (language !== 'javascript') {
-      setConsoleOutput(`> [Info] Client-side execution is only available for JavaScript.\n> Auto-triggering AI Evaluation for ${language}...`);
-      submitCode();
+      setConsoleOutput(`> Compiling and running ${language} code...`);
+      try {
+        const res = await axios.post('/api/interview/run-code', { code, language });
+        setConsoleOutput(`> Output:\n${res.data.output}`);
+      } catch (err) {
+        setConsoleOutput(`> Execution failed. Ensure backend is running.`);
+      }
       return;
     }
     setEvaluation(null); // Instantly flip back to console output view!

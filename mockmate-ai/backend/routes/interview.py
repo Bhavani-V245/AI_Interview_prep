@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from utils.gemini_helper import (
     generate_interview_questions, get_feedback, get_hint, evaluate_code, 
-    get_assistant_response, generate_custom_coding_problem, generate_custom_quiz,
+    simulate_code_execution, get_assistant_response, generate_custom_coding_problem, generate_custom_quiz,
     simulate_gd_peers, evaluate_gd_session, generate_random_gd_topic
 )
 import json
@@ -140,6 +140,15 @@ def hint():
     question = data.get('question')
     hint_text = get_hint(question)
     return jsonify({"hint": hint_text})
+
+@interview_bp.route('/run-code', methods=['POST'])
+def run_code():
+    data = request.json
+    code = data.get('code', '')
+    language = data.get('language', 'cpp')
+    
+    output = simulate_code_execution(code, language)
+    return jsonify({"output": output})
 
 @interview_bp.route('/evaluate-code', methods=['POST'])
 def eval_code():

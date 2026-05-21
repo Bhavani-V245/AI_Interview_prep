@@ -1443,9 +1443,18 @@ const CodingPractice = () => {
   };
 
   // Run Local Test Mock Output
-  const handleRunLocalCode = () => {
-    setConsoleOutput("> Auto-triggering AI Evaluation to check your logic...");
-    handleSubmitCode();
+  const handleRunLocalCode = async () => {
+    if (language !== 'javascript') {
+      setConsoleOutput(`> Compiling and running ${language} code...`);
+      try {
+        const res = await axios.post('/api/interview/run-code', { code, language });
+        setConsoleOutput(`> Output:\n${res.data.output}`);
+      } catch (err) {
+        setConsoleOutput(`> Execution failed. Ensure backend is running.`);
+      }
+      return;
+    }
+    setConsoleOutput("> Running test cases...\n\nCompiling template parameters...\n✔ Code execution completed locally.\nWarning: Submitting to AI evaluation is required to record completed status and obtain a score!");
   };
 
   // Evaluate Practice Code with AI

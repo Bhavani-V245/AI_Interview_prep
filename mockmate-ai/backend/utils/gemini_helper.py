@@ -477,6 +477,35 @@ def get_hint(question):
             return "Hint: Think about system resilience or caching! (API limit reached)"
         return "Hint: Try breaking down the problem into smaller parts."
 
+def simulate_code_execution(code, language):
+    prompt = f"""
+    You are a strict, standard compiler and runtime environment for {language}.
+    Simulate the execution of the following code.
+    If there are syntax errors or runtime exceptions, output the exact error message you would see in a real terminal.
+    If it runs successfully, output EXACTLY what would be printed to standard output (console).
+    DO NOT provide any explanations, markdown, or chat text. Output ONLY the terminal output.
+
+    Code:
+    ```
+    {code}
+    ```
+    """
+    
+    if USE_GITHUB_MODELS and GITHUB_TOKEN:
+        try:
+            return call_github_fallback(prompt)
+        except Exception as e:
+            pass
+            
+    try:
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(temperature=0.0)
+        )
+        return response.text.strip()
+    except Exception as e:
+        return f"Error simulating code execution: {str(e)}"
+
 def get_assistant_response(chat_history):
     system_instruction = """
     You are "MockMate Companion", the official AI guide for the MockMate AI interview preparation platform.
