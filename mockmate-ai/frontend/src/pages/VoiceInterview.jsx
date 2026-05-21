@@ -37,6 +37,15 @@ const VoiceInterview = () => {
     return () => { window.speechSynthesis.onvoiceschanged = null; };
   }, []);
 
+  // ─── Auto-speak every question (including Q1 on first load) ─────────
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      doSpeak(questions[currentIdx]);
+    }, 600);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIdx]);
+
   // ─── Check SpeechRecognition support ────────────────────────────────
   useEffect(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -126,26 +135,19 @@ const VoiceInterview = () => {
     }
   };
 
-  // ─── Speak question (Chrome-bug-proof) ──────────────────────────────
-  const speakQuestion = () => {
-    if (!window.speechSynthesis) {
-      toast.error('Text-to-speech not supported in this browser.');
-      return;
-    }
-
-    // Cancel any ongoing speech first
+  // ─── Core TTS logic (shared by button + auto-speak) ─────────────────
+  const doSpeak = (text) => {
+    if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    window.speechSynthesis.resume(); // Unblock Chrome if paused
-    setIsSpeaking(false);
+    window.speechSynthesis.resume();
 
     const voices = window.speechSynthesis.getVoices();
-    const utterance = new SpeechSynthesisUtterance(questions[currentIdx]);
+    const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
     utterance.rate = 0.9;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
-    // Pick best English voice
     const preferred =
       voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
       voices.find(v => v.lang === 'en-US') ||
@@ -153,26 +155,49 @@ const VoiceInterview = () => {
       null;
     if (preferred) utterance.voice = preferred;
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => { setIsSpeaking(false); clearInterval(keepAlive); };
-    utterance.onerror = (e) => {
-      setIsSpeaking(false);
-      clearInterval(keepAlive);
-      if (e.error !== 'interrupted' && e.error !== 'canceled') {
-        toast.error('Speaker error. Check if your browser tab is muted (right-click tab → Unmute).');
-      }
-    };
-
-    // Keep-alive: Chrome pauses TTS on long text — prevent that
     const keepAlive = setInterval(() => {
       if (!window.speechSynthesis.speaking) { clearInterval(keepAlive); return; }
       window.speechSynthesis.pause();
       window.speechSynthesis.resume();
     }, 10000);
 
-    // IMPORTANT: speak() MUST be called synchronously here (no setTimeout)
-    // Chrome loses user-gesture context if called from inside a setTimeout
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => { setIsSpeaking(false); clearInterval(keepAlive); };
+    utterance.onerror = (e) => {
+      setIsSpeaking(false);
+      clearInterval(keepAlive);
+      if (e.error !== 'interrupted' && e.error !== 'canceled') {
+        toast.error('Speaker error. Check if your browser tab is muted.');
+      }
+    };
+
     window.speechSynthesis.speak(utterance);
+  };
+
+  // ─── Speak button click ──────────────────────────────────────────────
+  const speakQuestion = () => {
+    if (!window.speechSynthesis) {
+      toast.error('Text-to-speech not supported in this browser.');
+      return;
+    }
+    doSpeak(questions[currentIdx]);
+  };
+
+  // ─── Auto-read feedback after analysis ───────────────────────────────
+  const speakFeedback = (feedbackData) => {
+    const score = Number(feedbackData.score || 0).toFixed(1);
+    const strengths = typeof feedbackData.strengths === 'string'
+      ? feedbackData.strengths
+      : (feedbackData.feedback || '');
+    const improvements = typeof feedbackData.areas_for_improvement === 'string'
+      ? feedbackData.areas_for_improvement
+      : (feedbackData.improvement || '');
+
+    const text = `Your score is ${score} out of 10. 
+      Strengths: ${strengths.slice(0, 300)}. 
+      Areas for improvement: ${improvements.slice(0, 300)}.`;
+
+    setTimeout(() => doSpeak(text), 800);
   };
 
 
@@ -200,6 +225,7 @@ const VoiceInterview = () => {
 
       setFeedback(res.data);
       toast.success('✅ Analysis complete!');
+      speakFeedback(res.data);
     } catch (err) {
       console.warn('Feedback API failed, using local analysis:', err);
       const words = finalAnswer.toLowerCase().split(/\s+/);
@@ -207,7 +233,7 @@ const VoiceInterview = () => {
       const hasTechKeywords = words.some(w => ['because', 'implemented', 'designed', 'result', 'impact', 'led', 'solved', 'built', 'optimized'].includes(w));
 
       const score = wordCount < 10 ? 4.0 : hasTechKeywords ? 7.5 : 6.0;
-      setFeedback({
+      const localFeedback = {
         score,
         technical_score: Math.max(1, score - 0.5),
         soft_skills_score: Math.min(10, score + 0.5),
@@ -215,8 +241,10 @@ const VoiceInterview = () => {
         areas_for_improvement: 'Use the STAR method: Situation, Task, Action, Result with specific metrics.',
         communication_feedback: 'Structure your answer with clear context and outcome.',
         model_answer: `For "${questions[currentIdx]}" — A great answer covers: (S) the situation/context, (T) your specific role/task, (A) exact steps you took, (R) measurable result achieved.`
-      });
+      };
+      setFeedback(localFeedback);
       toast.success('Analysis complete (offline mode).');
+      speakFeedback(localFeedback);
     } finally {
       setLoading(false);
     }
@@ -232,12 +260,14 @@ const VoiceInterview = () => {
     setTranscript('');
     transcriptRef.current = '';
     setFeedback(null);
+    hasInteracted.current = true; // unlock auto-speak for next question
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(prev => prev + 1);
     } else {
       toast.success('🎉 All questions completed!');
     }
   };
+
 
   return (
     <div className="p-6 md:p-10 max-w-4xl mx-auto min-h-screen flex flex-col justify-center">
