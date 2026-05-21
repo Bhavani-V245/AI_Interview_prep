@@ -642,41 +642,86 @@ def generate_custom_quiz(category):
             text = text.split("```json")[1].split("```")[0].strip()
         elif "```" in text:
             text = text.split("```")[1].split("```")[0].strip()
+        
+        # Validate that it's valid JSON
+        json.loads(text)
         return text
     except Exception as e:
         err_msg = str(e)
         if GITHUB_TOKEN:
             try:
-                return call_github_fallback(prompt)
+                fallback_res = call_github_fallback(prompt)
+                json.loads(fallback_res)
+                return fallback_res
             except:
                 pass
-        return json.dumps([
+        
+        import random
+        fallback_bank = [
             {
                 "question": "A card is drawn from a well-shuffled pack of 52 cards. What is the probability of drawing a Queen or a Club?",
                 "options": ["17/52", "4/13", "16/52", "3/13"],
-                "answer": 2
+                "answer": 2,
+                "explanation": "Number of Queens = 4. Number of Clubs = 13. Overlap (Queen of Clubs) = 1. Total unique cards = 4 + 13 - 1 = 16. Probability = 16/52."
             },
             {
                 "question": "A and B can complete a work in 12 days and 18 days respectively. A starts the work and they work on alternate days. In how many days will the work be completed?",
                 "options": ["14.3 days", "14.5 days", "15 days", "13.8 days"],
-                "answer": 0
+                "answer": 0,
+                "explanation": "Work = LCM(12,18) = 36 units. A does 3 u/day, B does 2 u/day. In 2 days, 5 units completed. In 14 days (7 cycles), 35 units completed. Remaining 1 unit done by A in 1/3 day => 14.33 days."
             },
             {
                 "question": "A sells a watch to B at a 20% profit, and B sells it to C at a 10% loss. If C pays $108 for the watch, how much did A pay?",
                 "options": ["$90", "$100", "$95", "$110"],
-                "answer": 1
+                "answer": 1,
+                "explanation": "Let A's purchase price be x. B buys at 1.2x. C buys at 1.2x * 0.9 = 1.08x. Since C pays $108, 1.08x = 108 => x = $100."
             },
             {
                 "question": "In a certain code, 'LIGHT' is written as 'MJHIT'. How is 'SOUND' written in that code?",
                 "options": ["TPEOE", "TPVOE", "TPVOF", "TPEOF"],
-                "answer": 1
+                "answer": 1,
+                "explanation": "Each letter is shifted forward by 1 position (+1 shift index): S->T, O->P, U->V, N->O, D->E."
             },
             {
                 "question": "Six people A, B, C, D, E and F are sitting in a circle facing the center. B is between F and D, E is between A and C, and F is to the left of D. Who is opposite to B?",
                 "options": ["A", "C", "E", "D"],
-                "answer": 2
+                "answer": 2,
+                "explanation": "Arranging in circle facing center: D -> F -> B -> A -> E -> C. Opposite to B is E."
+            },
+            {
+                "question": "If 5 spiders can catch 5 flies in 5 minutes, how many spiders do you need to catch 100 flies in 100 minutes?",
+                "options": ["1", "5", "100", "20"],
+                "answer": 1,
+                "explanation": "Each spider catches 1 fly in 5 minutes. So 1 spider can catch 20 flies in 100 minutes. To catch 100 flies in 100 minutes, we need 100 / 20 = 5 spiders."
+            },
+            {
+                "question": "The sum of ages of 5 children born at the intervals of 3 years each is 50 years. What is the age of the youngest child?",
+                "options": ["4 years", "8 years", "10 years", "None of these"],
+                "answer": 0,
+                "explanation": "Let ages be x, x+3, x+6, x+9, x+12. Sum = 5x + 30 = 50. 5x = 20, so x = 4."
+            },
+            {
+                "question": "Two trains running in opposite directions cross a man standing on the platform in 27 seconds and 17 seconds respectively and they cross each other in 23 seconds. The ratio of their speeds is:",
+                "options": ["1:3", "3:2", "3:4", "None of these"],
+                "answer": 1,
+                "explanation": "Let speeds be x and y. Lengths are 27x and 17y. (27x + 17y) / (x + y) = 23. 27x + 17y = 23x + 23y. 4x = 6y => x/y = 3/2."
+            },
+            {
+                "question": "Find the missing number in the series: 3, 9, 21, 45, ?",
+                "options": ["54", "78", "87", "93"],
+                "answer": 3,
+                "explanation": "The differences are 6, 12, 24. The next difference should be 48. 45 + 48 = 93."
+            },
+            {
+                "question": "Pointing to a photograph of a boy Suresh said, 'He is the son of the only son of my mother.' How is Suresh related to that boy?",
+                "options": ["Brother", "Uncle", "Cousin", "Father"],
+                "answer": 3,
+                "explanation": "The only son of Suresh's mother is Suresh himself. Therefore, the boy is Suresh's son, meaning Suresh is the father."
             }
-        ])
+        ]
+        
+        selected_questions = random.sample(fallback_bank, 5)
+        return json.dumps(selected_questions)
 
 def simulate_gd_peers(topic, chat_history):
     prompt = f"""

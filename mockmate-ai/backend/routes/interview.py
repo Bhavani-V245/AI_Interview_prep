@@ -275,7 +275,7 @@ def gen_quiz():
             "id": 1,
             "question": "A train passes a station platform in 36 seconds and a man standing on the platform in 20 seconds. If the speed of the train is 54 km/hr, what is the length of the platform?",
             "options": ["120 m", "240 m", "300 m", "360 m"],
-            "answer": "240 m",
+            "answer": 1,
             "explanation": "Speed = 54 * (5/18) = 15 m/s. Length of train = 15 * 20 = 300 m. Length of platform + train = 15 * 36 = 540 m. Platform = 540 - 300 = 240 m."
         }
     ]
