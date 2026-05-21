@@ -228,5 +228,15 @@
     "date": "2026-05-20 21:59",
     "questions_count": 1,
     "duration_seconds": 300
+  },
+  {
+    "id": 24,
+    "type": "interview",
+    "role": "Frontend Developer",
+    "topic": "React",
+    "score": 71,
+    "date": "2026-05-20 23:59",
+    "questions_count": 5,
+    "duration_seconds": 438
   }
 ]
