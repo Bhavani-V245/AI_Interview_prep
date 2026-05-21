@@ -40,28 +40,67 @@ const VoiceInterview = () => {
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error', event.error);
         setIsListening(false);
+        if (event.error === 'not-allowed') {
+          toast.error('Microphone access denied. Please allow microphone permission in your browser settings and refresh.');
+        } else if (event.error === 'network') {
+          toast.error('Network error with speech recognition. Please check your connection.');
+        } else if (event.error === 'no-speech') {
+          toast.info('No speech detected. Please speak clearly and try again.');
+        } else {
+          toast.error(`Voice error: ${event.error}. Try refreshing the page.`);
+        }
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
       };
     } else {
-      toast.error('Browser does not support Speech Recognition');
+      toast.error('Voice input not supported. Please use Chrome or Edge browser.');
     }
   }, []);
 
   const toggleListening = () => {
+    if (!recognitionRef.current) {
+      toast.error('Voice input not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
     if (isListening) {
       recognitionRef.current.stop();
       setIsListening(false);
+      toast.info('Recording stopped.');
     } else {
       setTranscript('');
-      recognitionRef.current.start();
-      setIsListening(true);
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+        toast.success('Listening... Speak your answer now!');
+      } catch (err) {
+        toast.error('Could not start microphone. Please refresh and allow microphone access.');
+        console.error('Recognition start error:', err);
+      }
     }
   };
 
   const speakQuestion = () => {
+    if (!window.speechSynthesis) {
+      toast.error('Text-to-speech not supported in this browser.');
+      return;
+    }
+    // Cancel any ongoing speech first
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(questions[currentIdx]);
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    utterance.volume = 1;
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+    utterance.onerror = (e) => {
+      setIsSpeaking(false);
+      toast.error('Speaker failed. Please check your device volume and try again.');
+      console.error('Speech synthesis error:', e);
+    };
+    // Small delay needed for Chrome to load voices
+    setTimeout(() => window.speechSynthesis.speak(utterance), 100);
   };
 
   const submitVoiceAnswer = async () => {
