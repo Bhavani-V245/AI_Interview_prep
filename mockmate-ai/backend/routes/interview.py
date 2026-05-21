@@ -58,17 +58,8 @@ def _load_sessions(email=None):
     filepath = _get_sessions_file(email)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     if not os.path.exists(filepath):
-        # Migrate history from global sessions.json if it exists
-        if os.path.exists(SESSIONS_FILE) and filepath != SESSIONS_FILE:
-            try:
-                import shutil
-                shutil.copyfile(SESSIONS_FILE, filepath)
-            except Exception:
-                with open(filepath, 'w') as f:
-                    json.dump([], f)
-        else:
-            with open(filepath, 'w') as f:
-                json.dump([], f)
+        with open(filepath, 'w') as f:
+            json.dump([], f)
     try:
         with open(filepath, 'r') as f:
             sessions = json.load(f)

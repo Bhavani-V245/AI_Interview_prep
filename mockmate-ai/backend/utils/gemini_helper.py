@@ -657,71 +657,114 @@ def generate_custom_quiz(category):
                 pass
         
         import random
-        fallback_bank = [
-            {
-                "question": "A card is drawn from a well-shuffled pack of 52 cards. What is the probability of drawing a Queen or a Club?",
-                "options": ["17/52", "4/13", "16/52", "3/13"],
-                "answer": 2,
-                "explanation": "Number of Queens = 4. Number of Clubs = 13. Overlap (Queen of Clubs) = 1. Total unique cards = 4 + 13 - 1 = 16. Probability = 16/52."
-            },
-            {
-                "question": "A and B can complete a work in 12 days and 18 days respectively. A starts the work and they work on alternate days. In how many days will the work be completed?",
-                "options": ["14.3 days", "14.5 days", "15 days", "13.8 days"],
-                "answer": 0,
-                "explanation": "Work = LCM(12,18) = 36 units. A does 3 u/day, B does 2 u/day. In 2 days, 5 units completed. In 14 days (7 cycles), 35 units completed. Remaining 1 unit done by A in 1/3 day => 14.33 days."
-            },
-            {
-                "question": "A sells a watch to B at a 20% profit, and B sells it to C at a 10% loss. If C pays $108 for the watch, how much did A pay?",
-                "options": ["$90", "$100", "$95", "$110"],
-                "answer": 1,
-                "explanation": "Let A's purchase price be x. B buys at 1.2x. C buys at 1.2x * 0.9 = 1.08x. Since C pays $108, 1.08x = 108 => x = $100."
-            },
-            {
-                "question": "In a certain code, 'LIGHT' is written as 'MJHIT'. How is 'SOUND' written in that code?",
-                "options": ["TPEOE", "TPVOE", "TPVOF", "TPEOF"],
-                "answer": 1,
-                "explanation": "Each letter is shifted forward by 1 position (+1 shift index): S->T, O->P, U->V, N->O, D->E."
-            },
-            {
-                "question": "Six people A, B, C, D, E and F are sitting in a circle facing the center. B is between F and D, E is between A and C, and F is to the left of D. Who is opposite to B?",
-                "options": ["A", "C", "E", "D"],
-                "answer": 2,
-                "explanation": "Arranging in circle facing center: D -> F -> B -> A -> E -> C. Opposite to B is E."
-            },
-            {
-                "question": "If 5 spiders can catch 5 flies in 5 minutes, how many spiders do you need to catch 100 flies in 100 minutes?",
-                "options": ["1", "5", "100", "20"],
-                "answer": 1,
-                "explanation": "Each spider catches 1 fly in 5 minutes. So 1 spider can catch 20 flies in 100 minutes. To catch 100 flies in 100 minutes, we need 100 / 20 = 5 spiders."
-            },
-            {
-                "question": "The sum of ages of 5 children born at the intervals of 3 years each is 50 years. What is the age of the youngest child?",
-                "options": ["4 years", "8 years", "10 years", "None of these"],
-                "answer": 0,
-                "explanation": "Let ages be x, x+3, x+6, x+9, x+12. Sum = 5x + 30 = 50. 5x = 20, so x = 4."
-            },
-            {
-                "question": "Two trains running in opposite directions cross a man standing on the platform in 27 seconds and 17 seconds respectively and they cross each other in 23 seconds. The ratio of their speeds is:",
-                "options": ["1:3", "3:2", "3:4", "None of these"],
-                "answer": 1,
-                "explanation": "Let speeds be x and y. Lengths are 27x and 17y. (27x + 17y) / (x + y) = 23. 27x + 17y = 23x + 23y. 4x = 6y => x/y = 3/2."
-            },
-            {
-                "question": "Find the missing number in the series: 3, 9, 21, 45, ?",
-                "options": ["54", "78", "87", "93"],
-                "answer": 3,
-                "explanation": "The differences are 6, 12, 24. The next difference should be 48. 45 + 48 = 93."
-            },
-            {
-                "question": "Pointing to a photograph of a boy Suresh said, 'He is the son of the only son of my mother.' How is Suresh related to that boy?",
-                "options": ["Brother", "Uncle", "Cousin", "Father"],
-                "answer": 3,
-                "explanation": "The only son of Suresh's mother is Suresh himself. Therefore, the boy is Suresh's son, meaning Suresh is the father."
-            }
-        ]
+        import math
+        import random
         
-        selected_questions = random.sample(fallback_bank, 5)
-        return json.dumps(selected_questions)
+        questions = []
+        for _ in range(5):
+            template = random.choice(["speed", "work", "profit", "age", "interest"])
+            
+            if template == "speed":
+                speed_kmh = random.randint(40, 100)
+                time_platform = random.randint(20, 45)
+                time_man = random.randint(10, 19)
+                speed_ms = speed_kmh * (5/18)
+                length_train = speed_ms * time_man
+                length_platform = (speed_ms * time_platform) - length_train
+                ans_val = round(length_platform, 1)
+                
+                opts = [f"{ans_val} m", f"{round(length_platform + random.randint(10, 50), 1)} m", f"{round(length_platform - random.randint(10, 30), 1)} m", f"{round((speed_ms * time_platform), 1)} m"]
+                opts = list(set(opts))
+                while len(opts) < 4: opts.append(f"{random.randint(100, 300)} m"); opts = list(set(opts))
+                random.shuffle(opts)
+                ans_idx = opts.index(f"{ans_val} m")
+                
+                questions.append({
+                    "question": f"A train passes a station platform in {time_platform} seconds and a man standing on the platform in {time_man} seconds. If the speed of the train is {speed_kmh} km/hr, what is the length of the platform?",
+                    "options": opts,
+                    "answer": ans_idx,
+                    "explanation": f"Speed = {speed_kmh} * (5/18) = {round(speed_ms,2)} m/s. Length of train = {round(speed_ms,2)} * {time_man} = {round(length_train,1)} m. Length of platform + train = {round(speed_ms,2)} * {time_platform} = {round(length_platform + length_train,1)} m. Platform = {round(length_platform + length_train,1)} - {round(length_train,1)} = {ans_val} m."
+                })
+                
+            elif template == "work":
+                days_A = random.randint(10, 30)
+                days_B = random.randint(15, 45)
+                ans_val = round((days_A * days_B) / (days_A + days_B), 2)
+                
+                opts = [f"{ans_val} days", f"{round(ans_val + random.uniform(1, 3), 2)} days", f"{round(ans_val - random.uniform(1, 3), 2)} days", f"{round((days_A + days_B) / 2, 2)} days"]
+                opts = list(set(opts))
+                while len(opts) < 4: opts.append(f"{round(random.uniform(5, 20), 2)} days"); opts = list(set(opts))
+                random.shuffle(opts)
+                ans_idx = opts.index(f"{ans_val} days")
+                
+                questions.append({
+                    "question": f"A can do a piece of work in {days_A} days and B can do it in {days_B} days. How long will they take if both work together?",
+                    "options": opts,
+                    "answer": ans_idx,
+                    "explanation": f"Work = {days_A * days_B} units. A does {days_B} units/day, B does {days_A} units/day. Together they do {days_A + days_B} units/day. Total days = {days_A * days_B} / {days_A + days_B} = {ans_val} days."
+                })
+                
+            elif template == "profit":
+                cp = random.randint(100, 1500)
+                profit_pct = random.randint(10, 50)
+                ans_val = round(cp * (1 + profit_pct/100), 2)
+                
+                opts = [f"${ans_val}", f"${round(ans_val + random.randint(10, 50), 2)}", f"${round(ans_val - random.randint(10, 50), 2)}", f"${round(cp * (1 - profit_pct/100), 2)}"]
+                opts = list(set(opts))
+                while len(opts) < 4: opts.append(f"${random.randint(100, 2000)}"); opts = list(set(opts))
+                random.shuffle(opts)
+                ans_idx = opts.index(f"${ans_val}")
+                
+                questions.append({
+                    "question": f"A shopkeeper buys an article for ${cp} and sells it at a profit of {profit_pct}%. What is the selling price?",
+                    "options": opts,
+                    "answer": ans_idx,
+                    "explanation": f"Cost Price (CP) = ${cp}. Profit = {profit_pct}% of ${cp} = ${(profit_pct/100)*cp}. Selling Price = CP + Profit = ${cp} + ${(profit_pct/100)*cp} = ${ans_val}."
+                })
+                
+            elif template == "age":
+                diff = random.randint(2, 5)
+                num_children = random.randint(3, 5)
+                youngest_age = random.randint(2, 7)
+                ages = [youngest_age + i*diff for i in range(num_children)]
+                total_sum = sum(ages)
+                
+                opts = [f"{youngest_age} years", f"{youngest_age+diff} years", f"{youngest_age+random.randint(1,4)} years", f"{youngest_age-1} years"]
+                opts = list(set(opts))
+                while len(opts) < 4: opts.append(f"{random.randint(1, 15)} years"); opts = list(set(opts))
+                random.shuffle(opts)
+                ans_idx = opts.index(f"{youngest_age} years")
+                
+                explanation_parts = [f"x+{i*diff}" for i in range(num_children)]
+                sum_const = sum([i*diff for i in range(num_children)])
+                
+                questions.append({
+                    "question": f"The sum of ages of {num_children} children born at the intervals of {diff} years each is {total_sum} years. What is the age of the youngest child?",
+                    "options": opts,
+                    "answer": ans_idx,
+                    "explanation": f"Let youngest age be x. Ages are {', '.join(explanation_parts)}. Sum = {num_children}x + {sum_const} = {total_sum}. {num_children}x = {total_sum - sum_const}, so x = {youngest_age} years."
+                })
+                
+            else:
+                p = random.randint(1000, 10000)
+                r = random.randint(5, 15)
+                t = random.randint(2, 5)
+                ans_val = round((p * r * t) / 100, 2)
+                
+                opts = [f"${ans_val}", f"${round(ans_val + random.randint(50, 200), 2)}", f"${round(ans_val - random.randint(50, 200), 2)}", f"${round(p * (1 + r/100)**t - p, 2)}"]
+                opts = list(set(opts))
+                while len(opts) < 4: opts.append(f"${random.randint(500, 5000)}"); opts = list(set(opts))
+                random.shuffle(opts)
+                ans_idx = opts.index(f"${ans_val}")
+                
+                questions.append({
+                    "question": f"What is the simple interest on a principal of ${p} at a rate of {r}% per annum for {t} years?",
+                    "options": opts,
+                    "answer": ans_idx,
+                    "explanation": f"Simple Interest = (Principal * Rate * Time) / 100. SI = ({p} * {r} * {t}) / 100 = {p * r * t} / 100 = ${ans_val}."
+                })
+                
+        return json.dumps(questions)
 
 def simulate_gd_peers(topic, chat_history):
     prompt = f"""
