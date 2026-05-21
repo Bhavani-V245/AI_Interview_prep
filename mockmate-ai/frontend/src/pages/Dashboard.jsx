@@ -182,7 +182,7 @@ const Dashboard = () => {
 
   const stats = historyData ? [
     { label: 'Sessions', value: String(historyData.stats.total_sessions), icon: <Trophy size={18} />, trend: `+${Math.min(historyData.stats.total_sessions, 5)}`, color: 'text-amber-400', bg: 'bg-amber-400/10', glow: 'shadow-amber-400/20' },
-    { label: 'Avg Score', value: String(historyData.stats.avg_score), icon: <Target size={18} />, trend: '+0.5', color: 'text-emerald-400', bg: 'bg-emerald-400/10', glow: 'shadow-emerald-400/20' },
+    { label: 'Avg Score', value: String(historyData.stats.avg_score), icon: <Target size={18} />, trend: historyData.stats.avg_score > 0 ? '+0.5' : '+0.0', color: 'text-emerald-400', bg: 'bg-emerald-400/10', glow: 'shadow-emerald-400/20' },
     { label: 'Job Readiness', value: `${readinessData.score}%`, icon: <Activity size={18} />, trend: `AI Prediction`, color: 'text-fuchsia-400', bg: 'bg-fuchsia-400/10', glow: 'shadow-fuchsia-400/20' },
     { label: 'Questions Done', value: String(historyData.stats.total_questions), icon: <Zap size={18} />, trend: `+${historyData.stats.total_questions}`, color: 'text-indigo-400', bg: 'bg-indigo-400/10', glow: 'shadow-indigo-400/20' },
   ] : [];
