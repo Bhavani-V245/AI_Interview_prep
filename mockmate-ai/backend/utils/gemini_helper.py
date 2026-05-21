@@ -7,11 +7,11 @@ import urllib.request
 load_dotenv()
 
 # Configure Gemini API
-API_KEY = os.getenv("GEMINI_API_KEY")
+API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 if API_KEY:
     genai.configure(api_key=API_KEY)
 else:
-    print("Warning: GEMINI_API_KEY not found in environment variables.")
+    print("Warning: Neither GEMINI_API_KEY nor GOOGLE_API_KEY found in environment variables.")
 
 model = genai.GenerativeModel('gemini-2.5-flash')
 
