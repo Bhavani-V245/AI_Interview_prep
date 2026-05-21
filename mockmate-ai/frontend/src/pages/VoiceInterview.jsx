@@ -133,67 +133,46 @@ const VoiceInterview = () => {
       return;
     }
 
-    // Step 1: Cancel & reset
+    // Cancel any ongoing speech first
     window.speechSynthesis.cancel();
+    window.speechSynthesis.resume(); // Unblock Chrome if paused
     setIsSpeaking(false);
 
-    // Step 2: Wait for cancel to settle (Chrome needs this gap)
-    setTimeout(() => {
-      const voices = window.speechSynthesis.getVoices();
-      const utterance = new SpeechSynthesisUtterance(questions[currentIdx]);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const utterance = new SpeechSynthesisUtterance(questions[currentIdx]);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
 
-      // Pick best English voice
-      const preferred =
-        voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
-        voices.find(v => v.lang === 'en-US') ||
-        voices.find(v => v.lang.startsWith('en')) ||
-        null;
-      if (preferred) utterance.voice = preferred;
+    // Pick best English voice
+    const preferred =
+      voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) ||
+      voices.find(v => v.lang === 'en-US') ||
+      voices.find(v => v.lang.startsWith('en')) ||
+      null;
+    if (preferred) utterance.voice = preferred;
 
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        clearInterval(keepAlive);
-      };
-      utterance.onerror = (e) => {
-        setIsSpeaking(false);
-        clearInterval(keepAlive);
-        if (e.error !== 'interrupted' && e.error !== 'canceled') {
-          toast.error('Speaker error. Make sure your device volume is on.');
-        }
-      };
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => { setIsSpeaking(false); clearInterval(keepAlive); };
+    utterance.onerror = (e) => {
+      setIsSpeaking(false);
+      clearInterval(keepAlive);
+      if (e.error !== 'interrupted' && e.error !== 'canceled') {
+        toast.error('Speaker error. Check if your browser tab is muted (right-click tab → Unmute).');
+      }
+    };
 
-      // Step 3: Chrome bug fix — resume every 10s so it doesn't pause
-      const keepAlive = setInterval(() => {
-        if (!window.speechSynthesis.speaking) {
-          clearInterval(keepAlive);
-          return;
-        }
-        window.speechSynthesis.pause();
-        window.speechSynthesis.resume();
-      }, 10000);
-
-      // Step 4: Resume in case Chrome is paused, then speak
+    // Keep-alive: Chrome pauses TTS on long text — prevent that
+    const keepAlive = setInterval(() => {
+      if (!window.speechSynthesis.speaking) { clearInterval(keepAlive); return; }
+      window.speechSynthesis.pause();
       window.speechSynthesis.resume();
-      window.speechSynthesis.speak(utterance);
+    }, 10000);
 
-      // Step 5: Verify it actually started (Chrome sometimes silently fails)
-      setTimeout(() => {
-        if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-          clearInterval(keepAlive);
-          // Retry once
-          window.speechSynthesis.cancel();
-          setTimeout(() => {
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance(questions[currentIdx]));
-          }, 200);
-        }
-      }, 500);
-
-    }, 300);
+    // IMPORTANT: speak() MUST be called synchronously here (no setTimeout)
+    // Chrome loses user-gesture context if called from inside a setTimeout
+    window.speechSynthesis.speak(utterance);
   };
 
 
