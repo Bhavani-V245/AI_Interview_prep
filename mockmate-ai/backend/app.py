@@ -40,6 +40,10 @@ def create_app():
                 return send_from_directory(app.static_folder, path)
             else:
                 return send_from_directory(app.static_folder, 'index.html')
+    else:
+        @app.route('/')
+        def api_root():
+            return {"status": "success", "message": "MockMate AI Backend is perfectly active and running!"}
 
     return app
 
