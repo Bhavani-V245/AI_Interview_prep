@@ -12,6 +12,7 @@ const VoiceInterview = () => {
   const [step, setStep] = useState('setup'); // setup | interview
   const [config, setConfig] = useState({ role: 'Software Engineer', topic: 'Behavioral/HR', difficulty: 'Intermediate' });
   const [isListening, setIsListening] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -292,6 +293,7 @@ const VoiceInterview = () => {
       recognitionRef.current = null;
     }
     setIsListening(false);
+    setIsTyping(false);
     setTranscript('');
     transcriptRef.current = '';
     setFeedback(null);
@@ -435,38 +437,61 @@ const VoiceInterview = () => {
                 <span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Recording...
               </div>
             )}
-            {transcript ? (
+            
+            {isTyping ? (
+              <textarea
+                value={transcript}
+                onChange={(e) => {
+                  setTranscript(e.target.value);
+                  transcriptRef.current = e.target.value;
+                }}
+                placeholder="Type your answer here..."
+                className="w-full h-32 bg-transparent text-white placeholder-gray-500 border border-white/10 rounded-xl p-3 focus:outline-none focus:border-indigo-500 resize-none"
+              />
+            ) : transcript ? (
               <p className="text-gray-300 italic text-base leading-relaxed">"{transcript}"</p>
             ) : (
               <p className="text-gray-600 text-sm">
-                {isListening ? 'Speak now — your words will appear here...' : 'Press the mic button below and speak your answer.'}
+                {isListening ? 'Speak now — your words will appear here...' : 'Press the mic button below and speak your answer, or click "Type Answer" below.'}
               </p>
             )}
           </div>
 
           {/* Controls */}
           <div className="flex flex-col items-center gap-6">
-            {/* Big mic button */}
-            <button
-              onClick={toggleListening}
-              className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
-                isListening
-                  ? 'bg-red-500 shadow-red-500/50 scale-110'
-                  : 'bg-indigo-600 shadow-indigo-600/40 hover:scale-110 hover:bg-indigo-500'
-              }`}
-            >
-              {isListening
-                ? <Square className="text-white" fill="white" size={32} />
-                : <Mic className="text-white" size={36} />
-              }
-            </button>
-            <p className="text-xs text-gray-600 font-semibold uppercase tracking-widest">
-              {isListening ? 'Tap to stop recording' : 'Tap to start recording'}
-            </p>
+            {!isTyping && (
+              <>
+                {/* Big mic button */}
+                <button
+                  onClick={toggleListening}
+                  className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl ${
+                    isListening
+                      ? 'bg-red-500 shadow-red-500/50 scale-110'
+                      : 'bg-indigo-600 shadow-indigo-600/40 hover:scale-110 hover:bg-indigo-500'
+                  }`}
+                >
+                  {isListening
+                    ? <Square className="text-white" fill="white" size={32} />
+                    : <Mic className="text-white" size={36} />
+                  }
+                </button>
+                <p className="text-xs text-gray-600 font-semibold uppercase tracking-widest">
+                  {isListening ? 'Tap to stop recording' : 'Tap to start recording'}
+                </p>
+              </>
+            )}
 
             {/* Action buttons */}
             <div className="flex gap-4 flex-wrap justify-center">
-              {transcript && !isListening && (
+              <button
+                onClick={() => setIsTyping(!isTyping)}
+                className="btn-secondary py-3 px-6 rounded-2xl font-bold flex items-center gap-2 text-sm"
+              >
+                {isTyping ? 'Use Microphone' : '⌨️ Type Answer'}
+              </button>
+              
+              {(transcript || isTyping) && !isListening && (
+
                 <button
                   onClick={() => { setTranscript(''); transcriptRef.current = ''; }}
                   className="btn-secondary py-3 px-6 rounded-2xl font-bold flex items-center gap-2 text-sm"
