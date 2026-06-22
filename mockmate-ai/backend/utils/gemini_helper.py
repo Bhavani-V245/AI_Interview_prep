@@ -766,7 +766,6 @@ def generate_custom_quiz(topic, category, solved_questions=None, batch_size=25):
                         "explanation": f"Each letter is shifted forward by {shift} positions."
                     }
             else:
-            else:
                 # Default to Quantitative Aptitude math generators
                 if "speed" in top_lower or "distance" in top_lower: template = "speed"
                 elif "work" in top_lower: template = "work"
