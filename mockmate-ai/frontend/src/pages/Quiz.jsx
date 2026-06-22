@@ -140,14 +140,27 @@ const Quiz = () => {
       console.error("[DEBUG] API Error:", err.response?.data || err.message);
       toast.error(`Error reaching AI Quiz engine: ${err.message}. Using topic-specific fallback.`);
       
-      // Dynamic fallback generation based on topic
+      // Dynamic emergency fallback generation based on topic
       const topicFallback = [];
+      const mathQs = [
+        { q: "If 20% of a = b, then b% of 20 is the same as:", o: ["4% of a", "5% of a", "20% of a", "None"], a: 0, e: "20% of a = 0.2a. b% of 20 = (0.2a / 100) * 20 = 0.04a = 4% of a." },
+        { q: "A train running at the speed of 60 km/hr crosses a pole in 9 seconds. What is the length of the train?", o: ["120 metres", "180 metres", "324 metres", "150 metres"], a: 3, e: "Speed = 60 * 5/18 = 50/3 m/sec. Distance = (50/3) * 9 = 150 m." },
+        { q: "The sum of ages of 5 children born at the intervals of 3 years each is 50 years. What is the age of the youngest child?", o: ["4 years", "8 years", "10 years", "None"], a: 0, e: "x + (x+3) + (x+6) + (x+9) + (x+12) = 50. 5x + 30 = 50. x = 4." }
+      ];
+      const logicQs = [
+        { q: "Look at this series: 2, 1, (1/2), (1/4), ... What number should come next?", o: ["(1/3)", "(1/8)", "(2/8)", "(1/16)"], a: 1, e: "This is a simple division series; each number is one-half of the previous number." },
+        { q: "SCD, TEF, UGH, ____, WKL", o: ["CMN", "UJI", "VIJ", "IJT"], a: 2, e: "The first letters are alphabetical: S, T, U, V, W. The second and third letters are alphabetical pairs: CD, EF, GH, IJ, KL." }
+      ];
+      
+      const pool = (activeTab === "Logical Reasoning" || activeTab === "Verbal & Advanced") ? logicQs : mathQs;
+      
       for(let i=0; i<5; i++) {
+         const q = pool[i % pool.length];
          topicFallback.push({
-            question: `[Fallback] ${topicName} Question ${i+1}. Which option is correct?`,
-            options: ["Option A", "Option B", "Option C", "Option D"],
-            answer: 1,
-            explanation: `This is a dynamically generated fallback explanation for ${topicName}.`
+            question: `[Emergency Fallback - ${topicName}] ${q.q}`,
+            options: q.o,
+            answer: q.a,
+            explanation: q.e
          });
       }
       setQuestions(topicFallback);
