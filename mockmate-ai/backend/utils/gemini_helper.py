@@ -744,13 +744,18 @@ def generate_custom_quiz(topic, category, solved_questions=None):
                         "explanation": f"Each letter is shifted forward by {shift} positions."
                     }
             else:
+            else:
                 # Default to Quantitative Aptitude math generators
                 if "speed" in top_lower or "distance" in top_lower: template = "speed"
                 elif "work" in top_lower: template = "work"
                 elif "profit" in top_lower or "loss" in top_lower: template = "profit"
                 elif "age" in top_lower: template = "age"
-                elif "interest" in top_lower or "ratio" in top_lower: template = "interest"
-                else: template = random.choice(["speed", "work", "profit", "age", "interest"])
+                elif "interest" in top_lower: template = "interest"
+                elif "mixture" in top_lower or "allegation" in top_lower: template = "mixture"
+                elif "probability" in top_lower: template = "probability"
+                elif "average" in top_lower: template = "average"
+                elif "percent" in top_lower: template = "percentage"
+                else: template = random.choice(["speed", "work", "profit", "age", "interest", "mixture", "probability", "average", "percentage"])
                 if template == "speed":
                     speed_kmh = random.randint(40, 100)
                     time_platform = random.randint(20, 45)
@@ -789,6 +794,53 @@ def generate_custom_quiz(topic, category, solved_questions=None):
                     random.shuffle(opts)
                     ans_idx = opts.index(f"{youngest_age} years")
                     q_obj = {"question": f"The sum of ages of {num_children} children born at the intervals of {diff} years each is {total_sum} years. What is the age of the youngest child?", "options": opts, "answer": ans_idx, "explanation": f"Let youngest age be x. Sum = {num_children}x + sum_intervals = {total_sum}. x = {youngest_age} years."}
+                elif template == "mixture":
+                    vol = random.randint(40, 100)
+                    milk_ratio = random.randint(2, 5)
+                    water_ratio = random.randint(1, 3)
+                    total_ratio = milk_ratio + water_ratio
+                    while vol % total_ratio != 0:
+                        vol += 1
+                    milk_vol = int((milk_ratio / total_ratio) * vol)
+                    water_vol = vol - milk_vol
+                    added_water = random.randint(5, 15)
+                    new_water = water_vol + added_water
+                    import math as m
+                    gcd = m.gcd(milk_vol, new_water)
+                    ans_val = f"{milk_vol//gcd}:{new_water//gcd}"
+                    opts = [ans_val, f"{new_water//gcd}:{milk_vol//gcd}", f"{milk_vol//gcd + 1}:{new_water//gcd}", f"{milk_vol//gcd}:{new_water//gcd + 1}"]
+                    opts = list(set(opts))
+                    while len(opts) < 4: opts.append(f"{random.randint(2,7)}:{random.randint(2,7)}")
+                    random.shuffle(opts)
+                    ans_idx = opts.index(ans_val)
+                    q_obj = {"question": f"A {vol} litre mixture contains milk and water in the ratio {milk_ratio}:{water_ratio}. If {added_water} litres of water is added to the mixture, what will be the new ratio of milk to water?", "options": opts, "answer": ans_idx, "explanation": f"Initial milk = {milk_vol}L, water = {water_vol}L. After adding {added_water}L water, new water = {new_water}L. New ratio = {milk_vol}:{new_water} = {ans_val}."}
+                elif template == "probability":
+                    red = random.randint(3, 8)
+                    blue = random.randint(3, 8)
+                    total = red + blue
+                    ans_val = f"{red}/{total}"
+                    opts = [ans_val, f"{blue}/{total}", f"{red-1}/{total}", f"{red}/{total-1}"]
+                    opts = list(set(opts))
+                    while len(opts) < 4: opts.append(f"{random.randint(1,5)}/{total}")
+                    random.shuffle(opts)
+                    ans_idx = opts.index(ans_val)
+                    q_obj = {"question": f"A bag contains {red} red balls and {blue} blue balls. If one ball is drawn at random, what is the probability that it is red?", "options": opts, "answer": ans_idx, "explanation": f"Total balls = {red} + {blue} = {total}. Favorable outcomes (red) = {red}. Probability = {red}/{total}."}
+                elif template == "average":
+                    n = random.randint(5, 15)
+                    avg = random.randint(20, 50)
+                    new_val = random.randint(60, 100)
+                    ans_val = round(((n * avg) + new_val) / (n + 1), 2)
+                    opts = [f"{ans_val}", f"{round(ans_val + random.uniform(1,3), 2)}", f"{round(ans_val - random.uniform(1,3), 2)}", f"{round(avg + new_val/n, 2)}"]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(f"{ans_val}")
+                    q_obj = {"question": f"The average age of a class of {n} students is {avg} years. If the teacher's age of {new_val} years is included, what is the new average?", "options": opts, "answer": ans_idx, "explanation": f"Total age = {n} * {avg} = {n*avg}. New total = {n*avg} + {new_val} = {n*avg + new_val}. New average = {n*avg + new_val} / {n+1} = {ans_val}."}
+                elif template == "percentage":
+                    a = random.randint(15, 40)
+                    ans_val = round((a / (100 + a)) * 100, 2)
+                    opts = [f"{ans_val}%", f"{round(ans_val + random.randint(2,5), 2)}%", f"{round(ans_val - random.randint(2,5), 2)}%", f"{a}%"]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(f"{ans_val}%")
+                    q_obj = {"question": f"If A's salary is {a}% more than B's, then by what percentage is B's salary less than A's?", "options": opts, "answer": ans_idx, "explanation": f"Required percentage = [{a} / (100 + {a})] * 100 = {ans_val}%."}
                 else:
                     p = random.randint(1000, 10000)
                     r = random.randint(5, 15)
