@@ -644,13 +644,16 @@ def generate_custom_quiz(topic, category, solved_questions=None, batch_size=25):
 
     prompt = f"""
     You are a professional aptitude exam writer for high-end placements. 
-    Generate {batch_size} highly realistic, unique, and challenging multiple-choice questions for the following category and topic:
-    Category: {category}
+    You MUST generate exactly {batch_size} highly realistic, unique, and challenging multiple-choice questions EXCLUSIVELY for the following topic:
+    
     Topic: {topic}
+    Category: {category}
+    
     {solved_str}
     
+    CRITICAL RESTRICTION: EVERY SINGLE QUESTION must be strictly about "{topic}". DO NOT MIX ANY OTHER TOPICS OR CATEGORIES. If the topic is '{topic}', all {batch_size} questions must be about {topic}.
+    
     Ensure the questions contain actual numeric/logical/verbal challenges strictly related to this topic (e.g., word problems, seating plans, synonyms, coding logic).
-    Do not mix other topics.
     
     Format the response as a JSON array of {batch_size} question objects, where each object has these exact keys:
     - question: string (the problem text)
