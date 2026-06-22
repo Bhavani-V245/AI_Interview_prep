@@ -675,7 +675,9 @@ def generate_custom_quiz(topic, category, solved_questions=None):
         cat_lower = str(category).lower()
         
         # Determine fallback engine based on category
-        for _ in range(5):
+        attempts = 0
+        while len(questions) < 5 and attempts < 50:
+            attempts += 1
             q_obj = None
             if "verbal" in cat_lower or "synonym" in top_lower or "sentence" in top_lower:
                 words = [("Abate", "Subside"), ("Cacophony", "Noise"), ("Ebullient", "Enthusiastic"), ("Fastidious", "Meticulous"), ("Garrulous", "Talkative"), ("Hackneyed", "Clichéd"), ("Iconoclast", "Maverick"), ("Juxtapose", "Compare"), ("Kinetic", "Active"), ("Lethargic", "Sluggish"), ("Mellifluous", "Harmonious"), ("Nefarious", "Wicked"), ("Obfuscate", "Confuse"), ("Paradigm", "Model"), ("Quixotic", "Idealistic"), ("Reticent", "Reserved"), ("Sycophant", "Flatterer"), ("Trepidation", "Fear"), ("Ubiquitous", "Omnipresent"), ("Vacillate", "Waver")]
@@ -692,8 +694,11 @@ def generate_custom_quiz(topic, category, solved_questions=None):
                     "answer": ans_idx,
                     "explanation": f"The word '{target}' means '{syn}'."
                 }
-            elif "logic" in cat_lower or "direction" in top_lower or "blood" in top_lower or "series" in top_lower:
-                logic_type = random.choice(["series", "direction", "coding"])
+            elif "logic" in cat_lower or "direction" in top_lower or "blood" in top_lower or "series" in top_lower or "coding" in top_lower:
+                if "series" in top_lower: logic_type = "series"
+                elif "direction" in top_lower: logic_type = "direction"
+                elif "coding" in top_lower: logic_type = "coding"
+                else: logic_type = random.choice(["series", "direction", "coding"])
                 if logic_type == "series":
                     start = random.randint(2, 10)
                     step = random.randint(2, 5)
@@ -740,7 +745,12 @@ def generate_custom_quiz(topic, category, solved_questions=None):
                     }
             else:
                 # Default to Quantitative Aptitude math generators
-                template = random.choice(["speed", "work", "profit", "age", "interest"])
+                if "speed" in top_lower or "distance" in top_lower: template = "speed"
+                elif "work" in top_lower: template = "work"
+                elif "profit" in top_lower or "loss" in top_lower: template = "profit"
+                elif "age" in top_lower: template = "age"
+                elif "interest" in top_lower or "ratio" in top_lower: template = "interest"
+                else: template = random.choice(["speed", "work", "profit", "age", "interest"])
                 if template == "speed":
                     speed_kmh = random.randint(40, 100)
                     time_platform = random.randint(20, 45)
@@ -789,12 +799,13 @@ def generate_custom_quiz(topic, category, solved_questions=None):
                     ans_idx = opts.index(f"${ans_val}")
                     q_obj = {"question": f"What is the simple interest on a principal of ${p} at a rate of {r}% per annum for {t} years?", "options": opts, "answer": ans_idx, "explanation": f"SI = ({p} * {r} * {t}) / 100 = ${ans_val}."}
             
-            # Anti-repetition logic for fallback
-            if q_obj["question"] not in solved_questions:
+            # True Zero-Repetition logic for fallback
+            if q_obj["question"] not in solved_questions and not any(q["question"] == q_obj["question"] for q in questions):
                 questions.append(q_obj)
-            else:
-                q_obj["question"] += " "
-                questions.append(q_obj)
+                
+        # If we couldn't find 5 unique questions after 50 attempts, just return whatever we have
+        if len(questions) == 0:
+            questions.append({"question": "AI Service currently unavailable.", "options": ["A", "B", "C", "D"], "answer": 0, "explanation": "N/A"})
                 
         return json.dumps(questions)
 
