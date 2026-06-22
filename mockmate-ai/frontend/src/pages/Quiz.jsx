@@ -61,7 +61,10 @@ const TAB_ICONS = {
 
 const Quiz = () => {
   const [activeTab, setActiveTab] = useState("Quantitative Aptitude");
-  const [category, setCategory] = useState(null);
+  const [topic, setTopic] = useState(null);
+  const [solvedQuestions, setSolvedQuestions] = useState(() => {
+    return JSON.parse(localStorage.getItem('solved_questions') || '{}');
+  });
   const [questions, setQuestions] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
@@ -73,9 +76,9 @@ const Quiz = () => {
 
   const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
 
-  const startQuiz = async (catName) => {
+  const startQuiz = async (topicName) => {
     setLoading(true);
-    setCategory(catName);
+    setTopic(topicName);
     setCurrentIdx(0);
     setScore(0);
     setShowResult(false);
@@ -84,9 +87,17 @@ const Quiz = () => {
     setQuestions([]);
     setUserAnswers({});
 
+    console.log(`[DEBUG] Selected Category: ${activeTab}`);
+    console.log(`[DEBUG] Selected Topic: ${topicName}`);
+    
+    const solvedForTopic = solvedQuestions[topicName] || [];
+    console.log(`[DEBUG] Solved questions for ${topicName}:`, solvedForTopic);
+
     try {
       const res = await axios.post('/api/interview/generate-quiz', {
-        category: catName
+        category: activeTab,
+        topic: topicName,
+        solved_questions: solvedForTopic
       });
       if (res.data && res.data.questions && res.data.questions.length > 0) {
         setQuestions(res.data.questions);
@@ -126,40 +137,20 @@ const Quiz = () => {
         ]);
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Error reaching AI Quiz engine. Using fallback.");
-      setQuestions([
-        {
-          question: `A sells a watch to B at 20% profit, and B sells it to C at 10% loss. If C pays $108 for the watch, how much did A pay?`,
-          options: ["$90", "$100", "$95", "$110"],
-          answer: 1,
-          explanation: "Let A's purchase price be x. B buys at 1.2x. C buys at 1.2x * 0.9 = 1.08x. Since C pays $108, 1.08x = 108 => x = $100."
-        },
-        {
-          question: "In a certain code, 'LIGHT' is written as 'MJHIT'. How is 'SOUND' written in that code?",
-          options: ["TPEOE", "TPVOE", "TPVOF", "TPEOF"],
-          answer: 1,
-          explanation: "Each letter is shifted forward by 1 position (+1 shift index): S->T, O->P, U->V, N->O, D->E."
-        },
-        {
-          question: "A and B can complete a work in 12 days and 18 days respectively. A starts the work and they work on alternate days. In how many days will the work be completed?",
-          options: ["14.3 days", "14.5 days", "15 days", "13.8 days"],
-          answer: 0,
-          explanation: "Work = 36 units. A does 3 u/day, B does 2 u/day. In 2 days, 5 units completed. In 14 days (7 cycles), 35 units completed. Remaining 1 unit done by A in 1/3 day => 14.3 days."
-        },
-        {
-          question: "A card is drawn from a well-shuffled pack of 52 cards. What is the probability of drawing a Queen or a Club?",
-          options: ["17/52", "4/13", "16/52", "3/13"],
-          answer: 2,
-          explanation: "Number of Queens = 4. Number of Clubs = 13. Overlap (Queen of Clubs) = 1. Total unique cards = 4 + 13 - 1 = 16. Probability = 16/52."
-        },
-        {
-          question: "Six people A, B, C, D, E and F are sitting in a circle facing the center. B is between F and D, E is between A and C, and F is to the left of D. Who is opposite to B?",
-          options: ["A", "C", "E", "D"],
-          answer: 2,
-          explanation: "Arranging in circle facing center: D -> F -> B -> A -> E -> C. Opposite to B is E."
-        }
-      ]);
+      console.error("[DEBUG] API Error:", err.response?.data || err.message);
+      toast.error(`Error reaching AI Quiz engine: ${err.message}. Using topic-specific fallback.`);
+      
+      // Dynamic fallback generation based on topic
+      const topicFallback = [];
+      for(let i=0; i<5; i++) {
+         topicFallback.push({
+            question: `[Fallback] ${topicName} Question ${i+1}. Which option is correct?`,
+            options: ["Option A", "Option B", "Option C", "Option D"],
+            answer: 1,
+            explanation: `This is a dynamically generated fallback explanation for ${topicName}.`
+         });
+      }
+      setQuestions(topicFallback);
     } finally {
       setLoading(false);
     }
@@ -180,19 +171,41 @@ const Quiz = () => {
       setIsAnswered(false);
     } else {
       setShowResult(true);
+      
+      // Update solved questions in local storage
+      const newSolved = { ...solvedQuestions };
+      if (!newSolved[topic]) newSolved[topic] = [];
+      
+      let added = false;
+      Object.keys(userAnswers).forEach(idx => {
+        const numIdx = parseInt(idx);
+        if (userAnswers[numIdx] === questions[numIdx].answer) {
+           const qHash = questions[numIdx].question;
+           if (!newSolved[topic].includes(qHash)) {
+              newSolved[topic].push(qHash);
+              added = true;
+           }
+        }
+      });
+      
+      if (added) {
+         console.log(`[DEBUG] Updating solved questions for ${topic}:`, newSolved[topic]);
+         setSolvedQuestions(newSolved);
+         localStorage.setItem('solved_questions', JSON.stringify(newSolved));
+      }
     }
   };
 
   // Save quiz result to profile history
   useEffect(() => {
-    if (showResult && category && questions.length > 0) {
+    if (showResult && topic && questions.length > 0) {
       const userStr = localStorage.getItem('user');
       const userEmail = userStr ? JSON.parse(userStr).email : null;
       axios.post('/api/interview/save-session', {
         email: userEmail,
         type: 'quiz',
-        role: 'Placement Aptitude',
-        topic: category,
+        role: activeTab,
+        topic: topic,
         score: pct,
         questions_count: questions.length,
         duration_seconds: 240
@@ -212,7 +225,7 @@ const Quiz = () => {
             <Loader2 size={64} className="animate-spin text-indigo-500 mx-auto mb-6" />
             <h2 className="text-2xl font-black text-white tracking-tight">Crafting Quiz</h2>
             <p className="text-zinc-500 text-sm mt-2 leading-relaxed">
-              MockMate's AI is generating 5 unique, high-fidelity placement questions for <span className="text-indigo-400 font-bold">{category}</span>.
+              MockMate's AI is generating 5 unique, high-fidelity placement questions for <span className="text-indigo-400 font-bold">{topic}</span>.
             </p>
             <div className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest mt-6 text-zinc-400 w-fit mx-auto">
               <BrainCircuit size={12} className="text-violet-400 animate-pulse" /> Non-Repetitive AI Engine
@@ -224,7 +237,7 @@ const Quiz = () => {
   }
 
   // Categories Selector Screen
-  if (!category) {
+  if (!topic) {
     return (
       <div className="p-8 max-w-5xl mx-auto min-h-screen flex flex-col justify-center">
         <div className="text-center mb-12">
@@ -287,13 +300,13 @@ const Quiz = () => {
             <motion.div key="quiz" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="space-y-8">
               <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold flex items-center gap-3">
-                  <HelpCircle className="text-indigo-500" /> <span className="text-gradient">{category}</span>
+                  <HelpCircle className="text-indigo-500" /> <span className="text-gradient">{topic}</span>
                 </h1>
                 <div className="flex items-center gap-4">
                   <div className="glass px-4 py-2 rounded-xl text-sm font-bold border border-white/10">
                     {currentIdx + 1} / {questions.length}
                   </div>
-                  <button onClick={() => setCategory(null)} className="text-xs text-zinc-600 hover:text-white transition-colors font-bold uppercase tracking-widest">Change Topic</button>
+                  <button onClick={() => setTopic(null)} className="text-xs text-zinc-600 hover:text-white transition-colors font-bold uppercase tracking-widest">Change Topic</button>
                 </div>
               </div>
 
@@ -337,7 +350,7 @@ const Quiz = () => {
               </div>
               <h1 className="text-4xl font-black">Evaluation Finished</h1>
               <p className="text-zinc-500 text-lg">
-                Category: <span className="text-indigo-400 font-bold">{category}</span> • Score: <span className="text-white font-black">{score} / {questions.length}</span> ({Math.round((score / questions.length) * 100)}%)
+                Category: <span className="text-indigo-400 font-bold">{topic}</span> • Score: <span className="text-white font-black">{score} / {questions.length}</span> ({Math.round((score / questions.length) * 100)}%)
               </p>
             </div>
 
@@ -374,10 +387,10 @@ const Quiz = () => {
             </div>
 
             <div className="flex justify-center gap-4 pt-8">
-              <button onClick={() => startQuiz(category)} className="btn-primary py-4 px-10 rounded-2xl text-base font-bold flex items-center gap-2">
+              <button onClick={() => startQuiz(topic)} className="btn-primary py-4 px-10 rounded-2xl text-base font-bold flex items-center gap-2">
                 <RotateCcw size={18} /> Test Again
               </button>
-              <button onClick={() => setCategory(null)} className="btn-secondary py-4 px-10 rounded-2xl text-base font-bold">
+              <button onClick={() => setTopic(null)} className="btn-secondary py-4 px-10 rounded-2xl text-base font-bold">
                 Select Another Track
               </button>
             </div>

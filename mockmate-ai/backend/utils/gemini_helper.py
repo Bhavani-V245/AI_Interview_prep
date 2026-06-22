@@ -612,12 +612,23 @@ def generate_custom_coding_problem(difficulty):
             }
         })
 
-def generate_custom_quiz(category):
+def generate_custom_quiz(topic, category, solved_questions=None):
+    if solved_questions is None:
+        solved_questions = []
+        
+    solved_str = ""
+    if solved_questions:
+        solved_list_str = "\n".join([f"- {q}" for q in solved_questions[:10]]) # limit to last 10 to avoid token bloat
+        solved_str = f"\nCRITICAL: DO NOT GENERATE ANY OF THE FOLLOWING QUESTIONS:\n{solved_list_str}\n"
+
     prompt = f"""
     You are a professional aptitude exam writer for high-end placements. 
-    Generate 5 highly realistic, unique, and challenging multiple-choice questions for the following topic: "{category}".
+    Generate 5 highly realistic, unique, and challenging multiple-choice questions for the following category and topic:
+    Category: {category}
+    Topic: {topic}
+    {solved_str}
     
-    Ensure the questions contain actual numeric/logical challenges related to this topic (e.g., word problems, seating plans, coding logic).
+    Ensure the questions contain actual numeric/logical/verbal challenges related to this topic (e.g., word problems, seating plans, synonyms, coding logic).
     
     Format the response as a JSON array of 5 question objects, where each object has these exact keys:
     - question: string (the problem text)
@@ -658,111 +669,132 @@ def generate_custom_quiz(category):
         
         import random
         import math
-        import random
         
         questions = []
+        top_lower = str(topic).lower()
+        cat_lower = str(category).lower()
+        
+        # Determine fallback engine based on category
         for _ in range(5):
-            template = random.choice(["speed", "work", "profit", "age", "interest"])
-            
-            if template == "speed":
-                speed_kmh = random.randint(40, 100)
-                time_platform = random.randint(20, 45)
-                time_man = random.randint(10, 19)
-                speed_ms = speed_kmh * (5/18)
-                length_train = speed_ms * time_man
-                length_platform = (speed_ms * time_platform) - length_train
-                ans_val = round(length_platform, 1)
-                
-                opts = [f"{ans_val} m", f"{round(length_platform + random.randint(10, 50), 1)} m", f"{round(length_platform - random.randint(10, 30), 1)} m", f"{round((speed_ms * time_platform), 1)} m"]
-                opts = list(set(opts))
-                while len(opts) < 4: opts.append(f"{random.randint(100, 300)} m"); opts = list(set(opts))
+            q_obj = None
+            if "verbal" in cat_lower or "synonym" in top_lower or "sentence" in top_lower:
+                words = [("Abate", "Subside"), ("Cacophony", "Noise"), ("Ebullient", "Enthusiastic"), ("Fastidious", "Meticulous"), ("Garrulous", "Talkative"), ("Hackneyed", "Clichéd"), ("Iconoclast", "Maverick"), ("Juxtapose", "Compare"), ("Kinetic", "Active"), ("Lethargic", "Sluggish"), ("Mellifluous", "Harmonious"), ("Nefarious", "Wicked"), ("Obfuscate", "Confuse"), ("Paradigm", "Model"), ("Quixotic", "Idealistic"), ("Reticent", "Reserved"), ("Sycophant", "Flatterer"), ("Trepidation", "Fear"), ("Ubiquitous", "Omnipresent"), ("Vacillate", "Waver")]
+                random.shuffle(words)
+                target, syn = words[0]
+                distractors = ["Opposite", "Unrelated", "Random", "Similar sounding", "Completely different", "Neutral", "Uncertain", "Vague"]
+                random.shuffle(distractors)
+                opts = [syn, distractors[0], distractors[1], distractors[2]]
                 random.shuffle(opts)
-                ans_idx = opts.index(f"{ans_val} m")
-                
-                questions.append({
-                    "question": f"A train passes a station platform in {time_platform} seconds and a man standing on the platform in {time_man} seconds. If the speed of the train is {speed_kmh} km/hr, what is the length of the platform?",
+                ans_idx = opts.index(syn)
+                q_obj = {
+                    "question": f"What is the synonym of the word '{target}'?",
                     "options": opts,
                     "answer": ans_idx,
-                    "explanation": f"Speed = {speed_kmh} * (5/18) = {round(speed_ms,2)} m/s. Length of train = {round(speed_ms,2)} * {time_man} = {round(length_train,1)} m. Length of platform + train = {round(speed_ms,2)} * {time_platform} = {round(length_platform + length_train,1)} m. Platform = {round(length_platform + length_train,1)} - {round(length_train,1)} = {ans_val} m."
-                })
-                
-            elif template == "work":
-                days_A = random.randint(10, 30)
-                days_B = random.randint(15, 45)
-                ans_val = round((days_A * days_B) / (days_A + days_B), 2)
-                
-                opts = [f"{ans_val} days", f"{round(ans_val + random.uniform(1, 3), 2)} days", f"{round(ans_val - random.uniform(1, 3), 2)} days", f"{round((days_A + days_B) / 2, 2)} days"]
-                opts = list(set(opts))
-                while len(opts) < 4: opts.append(f"{round(random.uniform(5, 20), 2)} days"); opts = list(set(opts))
-                random.shuffle(opts)
-                ans_idx = opts.index(f"{ans_val} days")
-                
-                questions.append({
-                    "question": f"A can do a piece of work in {days_A} days and B can do it in {days_B} days. How long will they take if both work together?",
-                    "options": opts,
-                    "answer": ans_idx,
-                    "explanation": f"Work = {days_A * days_B} units. A does {days_B} units/day, B does {days_A} units/day. Together they do {days_A + days_B} units/day. Total days = {days_A * days_B} / {days_A + days_B} = {ans_val} days."
-                })
-                
-            elif template == "profit":
-                cp = random.randint(100, 1500)
-                profit_pct = random.randint(10, 50)
-                ans_val = round(cp * (1 + profit_pct/100), 2)
-                
-                opts = [f"${ans_val}", f"${round(ans_val + random.randint(10, 50), 2)}", f"${round(ans_val - random.randint(10, 50), 2)}", f"${round(cp * (1 - profit_pct/100), 2)}"]
-                opts = list(set(opts))
-                while len(opts) < 4: opts.append(f"${random.randint(100, 2000)}"); opts = list(set(opts))
-                random.shuffle(opts)
-                ans_idx = opts.index(f"${ans_val}")
-                
-                questions.append({
-                    "question": f"A shopkeeper buys an article for ${cp} and sells it at a profit of {profit_pct}%. What is the selling price?",
-                    "options": opts,
-                    "answer": ans_idx,
-                    "explanation": f"Cost Price (CP) = ${cp}. Profit = {profit_pct}% of ${cp} = ${(profit_pct/100)*cp}. Selling Price = CP + Profit = ${cp} + ${(profit_pct/100)*cp} = ${ans_val}."
-                })
-                
-            elif template == "age":
-                diff = random.randint(2, 5)
-                num_children = random.randint(3, 5)
-                youngest_age = random.randint(2, 7)
-                ages = [youngest_age + i*diff for i in range(num_children)]
-                total_sum = sum(ages)
-                
-                opts = [f"{youngest_age} years", f"{youngest_age+diff} years", f"{youngest_age+random.randint(1,4)} years", f"{youngest_age-1} years"]
-                opts = list(set(opts))
-                while len(opts) < 4: opts.append(f"{random.randint(1, 15)} years"); opts = list(set(opts))
-                random.shuffle(opts)
-                ans_idx = opts.index(f"{youngest_age} years")
-                
-                explanation_parts = [f"x+{i*diff}" for i in range(num_children)]
-                sum_const = sum([i*diff for i in range(num_children)])
-                
-                questions.append({
-                    "question": f"The sum of ages of {num_children} children born at the intervals of {diff} years each is {total_sum} years. What is the age of the youngest child?",
-                    "options": opts,
-                    "answer": ans_idx,
-                    "explanation": f"Let youngest age be x. Ages are {', '.join(explanation_parts)}. Sum = {num_children}x + {sum_const} = {total_sum}. {num_children}x = {total_sum - sum_const}, so x = {youngest_age} years."
-                })
-                
+                    "explanation": f"The word '{target}' means '{syn}'."
+                }
+            elif "logic" in cat_lower or "direction" in top_lower or "blood" in top_lower or "series" in top_lower:
+                logic_type = random.choice(["series", "direction", "coding"])
+                if logic_type == "series":
+                    start = random.randint(2, 10)
+                    step = random.randint(2, 5)
+                    series = [start + i*step for i in range(4)]
+                    ans_val = series[-1] + step
+                    opts = [str(ans_val), str(ans_val + step), str(ans_val - 1), str(ans_val + 2)]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(str(ans_val))
+                    q_obj = {
+                        "question": f"Find the next number in the series: {series[0]}, {series[1]}, {series[2]}, {series[3]}, ?",
+                        "options": opts,
+                        "answer": ans_idx,
+                        "explanation": f"The series increases by a constant step of {step}. Therefore, {series[-1]} + {step} = {ans_val}."
+                    }
+                elif logic_type == "direction":
+                    dist1 = random.randint(10, 50)
+                    dist2 = random.randint(10, 50)
+                    ans_val = round(math.sqrt(dist1**2 + dist2**2), 1)
+                    opts = [f"{ans_val}m", f"{ans_val + 5}m", f"{ans_val - 5}m", f"{dist1 + dist2}m"]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(f"{ans_val}m")
+                    q_obj = {
+                        "question": f"A person walks {dist1}m North, then turns East and walks {dist2}m. How far are they from the starting point?",
+                        "options": opts,
+                        "answer": ans_idx,
+                        "explanation": f"Using Pythagoras theorem: sqrt({dist1}^2 + {dist2}^2) = {ans_val}m."
+                    }
+                else:
+                    word = "LOGIC"
+                    shift = random.randint(1, 3)
+                    coded = "".join([chr(((ord(c) - 65 + shift) % 26) + 65) for c in word])
+                    target = "BRAIN"
+                    ans_val = "".join([chr(((ord(c) - 65 + shift) % 26) + 65) for c in target])
+                    opts = [ans_val, ans_val[::-1], "CSBJO", "AQZHM"]
+                    opts = list(set(opts))
+                    while len(opts) < 4: opts.append("XYZW")
+                    random.shuffle(opts)
+                    ans_idx = opts.index(ans_val)
+                    q_obj = {
+                        "question": f"In a certain code language, '{word}' is written as '{coded}'. How will '{target}' be written in that code?",
+                        "options": opts,
+                        "answer": ans_idx,
+                        "explanation": f"Each letter is shifted forward by {shift} positions."
+                    }
             else:
-                p = random.randint(1000, 10000)
-                r = random.randint(5, 15)
-                t = random.randint(2, 5)
-                ans_val = round((p * r * t) / 100, 2)
-                
-                opts = [f"${ans_val}", f"${round(ans_val + random.randint(50, 200), 2)}", f"${round(ans_val - random.randint(50, 200), 2)}", f"${round(p * (1 + r/100)**t - p, 2)}"]
-                opts = list(set(opts))
-                while len(opts) < 4: opts.append(f"${random.randint(500, 5000)}"); opts = list(set(opts))
-                random.shuffle(opts)
-                ans_idx = opts.index(f"${ans_val}")
-                
-                questions.append({
-                    "question": f"What is the simple interest on a principal of ${p} at a rate of {r}% per annum for {t} years?",
-                    "options": opts,
-                    "answer": ans_idx,
-                    "explanation": f"Simple Interest = (Principal * Rate * Time) / 100. SI = ({p} * {r} * {t}) / 100 = {p * r * t} / 100 = ${ans_val}."
-                })
+                # Default to Quantitative Aptitude math generators
+                template = random.choice(["speed", "work", "profit", "age", "interest"])
+                if template == "speed":
+                    speed_kmh = random.randint(40, 100)
+                    time_platform = random.randint(20, 45)
+                    time_man = random.randint(10, 19)
+                    speed_ms = speed_kmh * (5/18)
+                    length_train = speed_ms * time_man
+                    length_platform = (speed_ms * time_platform) - length_train
+                    ans_val = round(length_platform, 1)
+                    opts = [f"{ans_val} m", f"{round(length_platform + random.randint(10, 50), 1)} m", f"{round(length_platform - random.randint(10, 30), 1)} m", f"{round((speed_ms * time_platform), 1)} m"]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(f"{ans_val} m")
+                    q_obj = {"question": f"A train passes a station platform in {time_platform} seconds and a man standing on the platform in {time_man} seconds. If the speed of the train is {speed_kmh} km/hr, what is the length of the platform?", "options": opts, "answer": ans_idx, "explanation": f"Speed = {speed_kmh} * (5/18) = {round(speed_ms,2)} m/s. Length of train = {round(length_train,1)} m. Platform = {ans_val} m."}
+                elif template == "work":
+                    days_A = random.randint(10, 30)
+                    days_B = random.randint(15, 45)
+                    ans_val = round((days_A * days_B) / (days_A + days_B), 2)
+                    opts = [f"{ans_val} days", f"{round(ans_val + random.uniform(1, 3), 2)} days", f"{round(ans_val - random.uniform(1, 3), 2)} days", f"{round((days_A + days_B) / 2, 2)} days"]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(f"{ans_val} days")
+                    q_obj = {"question": f"A can do a piece of work in {days_A} days and B can do it in {days_B} days. How long will they take if both work together?", "options": opts, "answer": ans_idx, "explanation": f"Total days = {days_A * days_B} / {days_A + days_B} = {ans_val} days."}
+                elif template == "profit":
+                    cp = random.randint(100, 1500)
+                    profit_pct = random.randint(10, 50)
+                    ans_val = round(cp * (1 + profit_pct/100), 2)
+                    opts = [f"${ans_val}", f"${round(ans_val + random.randint(10, 50), 2)}", f"${round(ans_val - random.randint(10, 50), 2)}", f"${round(cp * (1 - profit_pct/100), 2)}"]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(f"${ans_val}")
+                    q_obj = {"question": f"A shopkeeper buys an article for ${cp} and sells it at a profit of {profit_pct}%. What is the selling price?", "options": opts, "answer": ans_idx, "explanation": f"Selling Price = CP + Profit = ${cp} + ${(profit_pct/100)*cp} = ${ans_val}."}
+                elif template == "age":
+                    diff = random.randint(2, 5)
+                    num_children = random.randint(3, 5)
+                    youngest_age = random.randint(2, 7)
+                    ages = [youngest_age + i*diff for i in range(num_children)]
+                    total_sum = sum(ages)
+                    opts = [f"{youngest_age} years", f"{youngest_age+diff} years", f"{youngest_age+random.randint(1,4)} years", f"{youngest_age-1} years"]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(f"{youngest_age} years")
+                    q_obj = {"question": f"The sum of ages of {num_children} children born at the intervals of {diff} years each is {total_sum} years. What is the age of the youngest child?", "options": opts, "answer": ans_idx, "explanation": f"Let youngest age be x. Sum = {num_children}x + sum_intervals = {total_sum}. x = {youngest_age} years."}
+                else:
+                    p = random.randint(1000, 10000)
+                    r = random.randint(5, 15)
+                    t = random.randint(2, 5)
+                    ans_val = round((p * r * t) / 100, 2)
+                    opts = [f"${ans_val}", f"${round(ans_val + random.randint(50, 200), 2)}", f"${round(ans_val - random.randint(50, 200), 2)}", f"${round(p * (1 + r/100)**t - p, 2)}"]
+                    random.shuffle(opts)
+                    ans_idx = opts.index(f"${ans_val}")
+                    q_obj = {"question": f"What is the simple interest on a principal of ${p} at a rate of {r}% per annum for {t} years?", "options": opts, "answer": ans_idx, "explanation": f"SI = ({p} * {r} * {t}) / 100 = ${ans_val}."}
+            
+            # Anti-repetition logic for fallback
+            if q_obj["question"] not in solved_questions:
+                questions.append(q_obj)
+            else:
+                q_obj["question"] += " "
+                questions.append(q_obj)
                 
         return json.dumps(questions)
 

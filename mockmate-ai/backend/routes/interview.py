@@ -259,18 +259,21 @@ def gen_coding_problem():
 def gen_quiz():
     data = request.json
     category = data.get('category', 'Quantitative Aptitude')
+    topic = data.get('topic', category)
+    solved_questions = data.get('solved_questions', [])
     
-    quiz_json = generate_custom_quiz(category)
-    fallback = [
-        {
-            "id": 1,
-            "question": "A train passes a station platform in 36 seconds and a man standing on the platform in 20 seconds. If the speed of the train is 54 km/hr, what is the length of the platform?",
-            "options": ["120 m", "240 m", "300 m", "360 m"],
-            "answer": 1,
-            "explanation": "Speed = 54 * (5/18) = 15 m/s. Length of train = 15 * 20 = 300 m. Length of platform + train = 15 * 36 = 540 m. Platform = 540 - 300 = 240 m."
-        }
-    ]
-    quiz_data = _safe_parse_json(quiz_json, fallback)
+    quiz_json = generate_custom_quiz(topic, category, solved_questions)
+    fallback = [] # Real fallback logic is now strictly inside gemini_helper
+    
+    try:
+        quiz_data = json.loads(quiz_json)
+        # If it's a dict with "questions", extract the list
+        if isinstance(quiz_data, dict) and "questions" in quiz_data:
+            quiz_data = quiz_data["questions"]
+    except Exception as e:
+        print(f"[DEBUG] JSON Parse error in gen_quiz: {e}")
+        quiz_data = []
+
     return jsonify({"questions": quiz_data})
 
 @interview_bp.route('/gd/simulate', methods=['POST'])
