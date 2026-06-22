@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { CacheManager } from '../utils/cacheManager';
 
 const PLACEMENT_TOPICS = {
   "Quantitative Aptitude": [
@@ -90,51 +91,43 @@ const Quiz = () => {
     console.log(`[DEBUG] Selected Category: ${activeTab}`);
     console.log(`[DEBUG] Selected Topic: ${topicName}`);
     
-    const solvedForTopic = solvedQuestions[topicName] || [];
-    console.log(`[DEBUG] Solved questions for ${topicName}:`, solvedForTopic);
+    // 1. Check Cache
+    const cachedQs = CacheManager.getCache('quiz', topicName);
+    if (cachedQs && cachedQs.length >= 5) {
+      console.log(`[DEBUG] Cache HIT for ${topicName}. Popping 5 questions from cache of ${cachedQs.length}.`);
+      const newQs = cachedQs.slice(0, 5);
+      const remainingQs = cachedQs.slice(5);
+      CacheManager.setCache('quiz', topicName, remainingQs);
+      setQuestions(newQs);
+      setLoading(false);
+      return;
+    }
+    
+    console.log(`[DEBUG] Cache MISS for ${topicName}. Fetching from AI...`);
+
+    const solvedForTopic = CacheManager.getSolved('quiz', topicName);
+    const targetBatchSize = CacheManager.getBatchSize('quiz', 25);
 
     try {
+      const startTime = Date.now();
       const res = await axios.post('/api/interview/generate-quiz', {
         category: activeTab,
         topic: topicName,
-        solved_questions: solvedForTopic
+        solved_questions: solvedForTopic,
+        batch_size: targetBatchSize
       });
-      if (res.data && res.data.questions && res.data.questions.length > 0) {
-        setQuestions(res.data.questions);
+      const elapsedMs = Date.now() - startTime;
+      
+      CacheManager.adjustBatchSize('quiz', 25, elapsedMs);
+
+      if (res.data && res.data.questions && res.data.questions.length >= 5) {
+        const fetchedQs = res.data.questions;
+        const newQs = fetchedQs.slice(0, 5);
+        const remainingQs = fetchedQs.slice(5);
+        CacheManager.setCache('quiz', topicName, remainingQs);
+        setQuestions(newQs);
       } else {
-        toast.error("Failed to generate quiz. Using fallback set.");
-        setQuestions([
-          {
-            question: `A sells a watch to B at 20% profit, and B sells it to C at 10% loss. If C pays $108 for the watch, how much did A pay?`,
-            options: ["$90", "$100", "$95", "$110"],
-            answer: 1,
-            explanation: "Let A's purchase price be x. B buys at 1.2x. C buys at 1.2x * 0.9 = 1.08x. Since C pays $108, 1.08x = 108 => x = $100."
-          },
-          {
-            question: "In a certain code, 'LIGHT' is written as 'MJHIT'. How is 'SOUND' written in that code?",
-            options: ["TPEOE", "TPVOE", "TPVOF", "TPEOF"],
-            answer: 1,
-            explanation: "Each letter is shifted forward by 1 position (+1 shift index): S->T, O->P, U->V, N->O, D->E."
-          },
-          {
-            question: "A and B can complete a work in 12 days and 18 days respectively. A starts the work and they work on alternate days. In how many days will the work be completed?",
-            options: ["14.3 days", "14.5 days", "15 days", "13.8 days"],
-            answer: 0,
-            explanation: "Work = 36 units. A does 3 u/day, B does 2 u/day. In 2 days, 5 units completed. In 14 days (7 cycles), 35 units completed. Remaining 1 unit done by A in 1/3 day => 14.3 days."
-          },
-          {
-            question: "A card is drawn from a well-shuffled pack of 52 cards. What is the probability of drawing a Queen or a Club?",
-            options: ["17/52", "4/13", "16/52", "3/13"],
-            answer: 2,
-            explanation: "Number of Queens = 4. Number of Clubs = 13. Overlap (Queen of Clubs) = 1. Total unique cards = 4 + 13 - 1 = 16. Probability = 16/52."
-          },
-          {
-            question: "Six people A, B, C, D, E and F are sitting in a circle facing the center. B is between F and D, E is between A and C, and F is to the left of D. Who is opposite to B?",
-            options: ["A", "C", "E", "D"],
-            answer: 2,
-            explanation: "Arranging in circle facing center: D -> F -> B -> A -> E -> C. Opposite to B is E."
-          }
-        ]);
+        throw new Error("Invalid AI format or insufficient questions returned.");
       }
     } catch (err) {
       console.error("[DEBUG] API Error:", err.response?.data || err.message);
@@ -168,6 +161,7 @@ const Quiz = () => {
       setLoading(false);
     }
   };
+
 
   const handleOptionSelect = (idx) => {
     if (isAnswered) return;

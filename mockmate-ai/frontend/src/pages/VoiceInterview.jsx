@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Volume2, Square, Loader2, Brain, CheckCircle2, RefreshCcw, ChevronRight, Sparkles, ChevronDown } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { CacheManager } from '../utils/cacheManager';
 
 const ROLES = ['Software Engineer', 'Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Data Scientist', 'Product Manager', 'DevOps Engineer', 'UI/UX Designer', 'Data Analyst', 'Cloud Architect'];
 const TOPICS = ['React', 'Node.js', 'Python', 'System Design', 'SQL', 'Machine Learning', 'Docker/Kubernetes', 'JavaScript', 'REST APIs', 'Behavioral/HR', 'Leadership', 'Communication', 'Problem Solving'];
@@ -55,25 +56,55 @@ const VoiceInterview = () => {
     }
   }, []);
 
-  // ─── Generate fresh questions from AI ────────────────────────────────
   const generateQuestions = async () => {
     setGenerating(true);
+
+    // 1. Check Cache
+    const cachedQs = CacheManager.getCache('voice', config.topic);
+    if (cachedQs && cachedQs.length >= 10) {
+      console.log(`[DEBUG] Cache HIT for Voice (${config.topic}). Popping 10 questions.`);
+      const currentQs = cachedQs.slice(0, 10);
+      const remainingQs = cachedQs.slice(10);
+      CacheManager.setCache('voice', config.topic, remainingQs);
+      setQuestions(currentQs);
+      setCurrentIdx(0);
+      setTranscript('');
+      transcriptRef.current = '';
+      setFeedback(null);
+      setStep('interview');
+      setGenerating(false);
+      toast.success(`Voice Lab Ready!`);
+      return;
+    }
+
     try {
+      const solved = CacheManager.getSolved('voice', config.topic);
+      const batchSize = CacheManager.getBatchSize('voice', 20);
+
+      const startTime = Date.now();
       const res = await axios.post('/api/interview/generate', {
         role: config.role,
         topic: config.topic,
         difficulty: config.difficulty,
-        num_questions: 10
+        solved_questions: solved,
+        batch_size: batchSize
       });
+      const elapsedMs = Date.now() - startTime;
+      
+      CacheManager.adjustBatchSize('voice', 20, elapsedMs);
+
       const qs = res.data?.questions;
-      if (Array.isArray(qs) && qs.length > 0) {
-        setQuestions(qs);
+      if (Array.isArray(qs) && qs.length >= 10) {
+        const currentQs = qs.slice(0, 10);
+        const remainingQs = qs.slice(10);
+        CacheManager.setCache('voice', config.topic, remainingQs);
+        setQuestions(currentQs);
         setCurrentIdx(0);
         setTranscript('');
         transcriptRef.current = '';
         setFeedback(null);
         setStep('interview');
-        toast.success(`${qs.length} unique questions ready!`);
+        toast.success(`Voice Lab Ready!`);
       } else {
         throw new Error('No questions returned');
       }
@@ -262,6 +293,7 @@ const VoiceInterview = () => {
       }
 
       setFeedback(res.data);
+      CacheManager.addSolved('voice', config.topic, questions[currentIdx]);
       toast.success('✅ Analysis complete!');
       speakFeedback(res.data);
     } catch (err) {
@@ -281,6 +313,7 @@ const VoiceInterview = () => {
         model_answer: `For "${questions[currentIdx]}" — A great answer covers: (S) the situation/context, (T) your specific role/task, (A) exact steps you took, (R) measurable result achieved.`
       };
       setFeedback(localFeedback);
+      CacheManager.addSolved('voice', config.topic, questions[currentIdx]);
       toast.success('Analysis complete (offline mode).');
       speakFeedback(localFeedback);
     } finally {
@@ -300,6 +333,7 @@ const VoiceInterview = () => {
     transcriptRef.current = '';
     setFeedback(null);
     hasInteracted.current = true; // unlock auto-speak for next question
+    
     if (currentIdx < questions.length - 1) {
       setCurrentIdx(prev => prev + 1);
     } else {

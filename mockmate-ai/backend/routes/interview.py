@@ -94,15 +94,23 @@ def generate():
     role = data.get('role')
     topic = data.get('topic')
     difficulty = data.get('difficulty')
+    batch_size = data.get('batch_size', 5)
+    solved_questions = data.get('solved_questions', [])
     
-    questions_json = generate_interview_questions(role, topic, difficulty)
+    questions_json = generate_interview_questions(role, topic, difficulty, solved_questions, batch_size)
     fallback = [
-        "Tell me about a complex project you've worked on recently.",
+        f"Tell me about a complex project you've worked on recently in {role}.",
         "What is your approach to resolving conflict within a development team?",
-        "How do you design, test, and implement secure data flow patterns?",
+        f"How do you design, test, and implement secure data flow patterns for {topic}?",
         "Where do you see yourself in five years?",
         "Why do you want to join our organization?"
     ]
+    # Ensure fallback scales roughly to batch_size
+    import math
+    if batch_size > len(fallback):
+        fallback = fallback * math.ceil(batch_size / len(fallback))
+    fallback = fallback[:batch_size]
+
     questions = _safe_parse_json(questions_json, fallback)
     return jsonify({"questions": questions})
 
@@ -234,8 +242,11 @@ def assistant():
 def gen_coding_problem():
     data = request.json
     difficulty = data.get('difficulty', 'Medium')
+    topic = data.get('topic', '')
+    batch_size = data.get('batch_size', 1)
+    solved_problems = data.get('solved_problems', [])
     
-    problem_json = generate_custom_coding_problem(difficulty)
+    problem_json = generate_custom_coding_problem(difficulty, topic, solved_problems, batch_size)
     fallback = {
         "title": "Merge Overlapping Intervals",
         "description": "Given an array of intervals where intervals[i] = [start_i, end_i], merge all overlapping intervals, and return an array of the non-overlapping intervals that cover all the intervals in the input.",
@@ -252,7 +263,10 @@ def gen_coding_problem():
             }
         ]
     }
-    problem_data = _safe_parse_json(problem_json, fallback)
+    problem_data = _safe_parse_json(problem_json, [fallback] * batch_size)
+    # If the generator returned a single object (legacy), wrap it in list
+    if isinstance(problem_data, dict):
+        problem_data = [problem_data]
     return jsonify(problem_data)
 
 @interview_bp.route('/generate-quiz', methods=['POST'])
@@ -261,8 +275,9 @@ def gen_quiz():
     category = data.get('category', 'Quantitative Aptitude')
     topic = data.get('topic', category)
     solved_questions = data.get('solved_questions', [])
+    batch_size = data.get('batch_size', 5)
     
-    quiz_json = generate_custom_quiz(topic, category, solved_questions)
+    quiz_json = generate_custom_quiz(topic, category, solved_questions, batch_size)
     fallback = [] # Real fallback logic is now strictly inside gemini_helper
     
     try:
@@ -312,13 +327,18 @@ def gd_evaluate():
 def gd_gen_topic():
     data = request.json
     category = data.get('category', 'Technology')
+    batch_size = data.get('batch_size', 1)
+    solved_topics = data.get('solved_topics', [])
     
-    topic_json = generate_random_gd_topic(category)
+    topic_json = generate_random_gd_topic(category, solved_topics, batch_size)
     fallback = {
         "topic": "The Role of Artificial Intelligence in Placement Recruitment",
-        "description": "Discuss the ethical implications, speed, and fairness of automated grading models in modern campus placements."
+        "description": "Discuss the ethical implications, speed, and fairness of automated grading models in modern campus placements.",
+        "category": category
     }
-    topic_data = _safe_parse_json(topic_json, fallback)
+    topic_data = _safe_parse_json(topic_json, [fallback] * batch_size)
+    if isinstance(topic_data, dict):
+        topic_data = [topic_data]
     return jsonify(topic_data)
 
 

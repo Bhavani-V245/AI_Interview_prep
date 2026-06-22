@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { CacheManager } from '../utils/cacheManager';
 
 const GD_CATEGORIES = [
   { id: 1, name: "Technology & AI", icon: "🚀", desc: "AI ethics, developer automation, tech monopolization, and smart cities." },
@@ -129,18 +130,63 @@ const GroupDiscussion = () => {
     setGeneratingCategory(categoryName);
     toast.info(`Moderator is compiling a blind placement topic for ${categoryName}...`);
     
-    try {
-      const res = await axios.post('/api/interview/gd/generate-topic', {
-        category: categoryName
-      });
+    // 1. Check Cache
+    const cachedTopics = CacheManager.getCache('gd', categoryName);
+    if (cachedTopics && cachedTopics.length > 0) {
+      console.log(`[DEBUG] Cache HIT for GD (${categoryName}). Popping 1 topic.`);
+      const currentTopic = cachedTopics[0];
+      const remainingTopics = cachedTopics.slice(1);
+      CacheManager.setCache('gd', categoryName, remainingTopics);
+      
+      setupSession(currentTopic);
+      setLoadingTopic(false);
+      setGeneratingCategory("");
+      return;
+    }
 
-      if (res.data && res.data.topic) {
-        const generatedTopic = res.data;
-        setTopic(generatedTopic);
-        setSessionStarted(true);
-        setChatLog([]);
-        setEvaluation(null);
-        setEnding(false);
+    try {
+      const solved = CacheManager.getSolved('gd', categoryName);
+      const batchSize = CacheManager.getBatchSize('gd', 20);
+
+      const startTime = Date.now();
+      const res = await axios.post('/api/interview/gd/generate-topic', {
+        category: categoryName,
+        solved_topics: solved,
+        batch_size: batchSize
+      });
+      const elapsedMs = Date.now() - startTime;
+      
+      CacheManager.adjustBatchSize('gd', 20, elapsedMs);
+
+      // res.data should be an array of topics now
+      const topics = Array.isArray(res.data) ? res.data : [res.data];
+      if (topics && topics.length > 0) {
+        const currentTopic = topics[0];
+        const remainingTopics = topics.slice(1);
+        CacheManager.setCache('gd', categoryName, remainingTopics);
+        
+        setupSession(currentTopic);
+      } else {
+        throw new Error("Failed to generate a blind topic.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Error generating mystery topic from AI.");
+    } finally {
+      setLoadingTopic(false);
+      setGeneratingCategory("");
+    }
+  };
+
+  const setupSession = (generatedTopic) => {
+    setTopic(generatedTopic);
+    setSessionStarted(true);
+    setChatLog([]);
+    setEvaluation(null);
+    setEnding(false);
+    
+    // Add to solved
+    CacheManager.addSolved('gd', generatingCategory, generatedTopic.topic);
         
         // Moderator introduces the blind topic
         setActiveSpeaker("Moderator");
@@ -160,16 +206,6 @@ const GroupDiscussion = () => {
           // Trigger Aarav to speak first
           simulatePeerResponse("Aarav", [initialModMessage], generatedTopic.topic);
         }, 1500);
-      } else {
-        toast.error("Failed to generate a blind topic. Try again.");
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error("Error generating mystery topic from AI.");
-    } finally {
-      setLoadingTopic(false);
-      setGeneratingCategory("");
-    }
   };
 
   const startRandomSurpriseSession = () => {

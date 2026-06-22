@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { CacheManager } from '../utils/cacheManager';
 
 const PROBLEMS = [
   {
@@ -140,23 +141,60 @@ const CodingRound = () => {
 
   const generateCustomProblem = async () => {
     setGeneratingProblem(true);
+
+    const cacheTopic = `coding_${selectedDifficulty}`;
+
+    // 1. Check Cache
+    const cachedQs = CacheManager.getCache('coding', cacheTopic);
+    if (cachedQs && cachedQs.length > 0) {
+      console.log(`[DEBUG] Cache HIT for Coding (${selectedDifficulty}). Popping 1 question.`);
+      const currentQ = cachedQs[0];
+      const remainingQs = cachedQs.slice(1);
+      CacheManager.setCache('coding', cacheTopic, remainingQs);
+      
+      setProblemList([...problemList, currentQ]);
+      setProblemIdx(problemList.length);
+      CacheManager.addSolved('coding', cacheTopic, currentQ.title);
+      toast.success(`Generated: "${currentQ.title}"!`);
+      setGeneratingProblem(false);
+      return;
+    }
+
     toast.info("Generating a completely unique AI coding challenge...");
     try {
+      const solved = CacheManager.getSolved('coding', cacheTopic);
+      const batchSize = CacheManager.getBatchSize('coding', 15);
+
+      const startTime = Date.now();
       const res = await axios.post('/api/interview/generate-coding-problem', {
-        difficulty: selectedDifficulty
+        difficulty: selectedDifficulty,
+        solved_questions: solved,
+        batch_size: batchSize
       });
-      if (res.data && res.data.title) {
-        const newProblem = res.data;
-        // Fix starterCode fallback if missing
-        if (!newProblem.starterCode) {
-          newProblem.starterCode = {
-            javascript: `// ${newProblem.title}\nfunction solution() {\n  // Write code here\n}`,
-            python: `# ${newProblem.title}\ndef solution():\n    pass`
-          };
-        }
-        setProblemList([...problemList, newProblem]);
+      const elapsedMs = Date.now() - startTime;
+      
+      CacheManager.adjustBatchSize('coding', 15, elapsedMs);
+
+      const qs = Array.isArray(res.data) ? res.data : [res.data];
+      
+      if (qs && qs.length > 0) {
+        qs.forEach(q => {
+          if (!q.starterCode) {
+            q.starterCode = {
+              javascript: `// ${q.title}\nfunction solution() {\n  // Write code here\n}`,
+              python: `# ${q.title}\ndef solution():\n    pass`
+            };
+          }
+        });
+
+        const currentQ = qs[0];
+        const remainingQs = qs.slice(1);
+        CacheManager.setCache('coding', cacheTopic, remainingQs);
+
+        setProblemList([...problemList, currentQ]);
         setProblemIdx(problemList.length);
-        toast.success(`Generated: "${newProblem.title}"!`);
+        CacheManager.addSolved('coding', cacheTopic, currentQ.title);
+        toast.success(`Generated: "${currentQ.title}"!`);
       } else {
         toast.error("Failed to generate problem. Try again.");
       }

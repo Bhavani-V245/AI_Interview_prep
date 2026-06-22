@@ -126,7 +126,7 @@ FALLBACK_QUESTIONS = {
     ]
 }
 
-def get_fallback_questions(role, topic):
+def get_fallback_questions(role, topic, batch_size=5):
     import random
     # Normalize input
     t_clean = str(topic).lower().strip()
@@ -180,16 +180,25 @@ def get_fallback_questions(role, topic):
             
         shuffled_questions.append(f"{pref}{q_formatted}")
         
-    return shuffled_questions[:5]
+    return shuffled_questions[:batch_size]
 
-def generate_interview_questions(role, topic, difficulty, num_questions=5):
+def generate_interview_questions(role, topic, difficulty, solved_questions=None, batch_size=5):
+    if solved_questions is None:
+        solved_questions = []
+        
+    solved_str = ""
+    if solved_questions:
+        solved_list_str = "\n".join([f"- {q}" for q in solved_questions[:15]])
+        solved_str = f"\nCRITICAL: DO NOT GENERATE ANY OF THE FOLLOWING QUESTIONS:\n{solved_list_str}\n"
+
     prompt = f"""
-    You are an expert interviewer. Generate {num_questions} interview questions for the role of {role} 
-    focusing on the topic: {topic}. The difficulty level should be {difficulty}.
+    You are an expert interviewer. Generate {batch_size} interview questions for the role of {role} 
+    focusing strictly on the topic: {topic}. The difficulty level should be {difficulty}.
+    {solved_str}
     
     CRITICAL INSTRUCTIONS:
     1. The FIRST question MUST ALWAYS be a personal/behavioral introduction question (e.g., "Tell me about yourself and your experience...", "Walk me through your background", "Why are you interested in this role?").
-    2. The remaining questions should focus on the technical topic: {topic}.
+    2. The remaining questions should focus on the technical topic: {topic}. Do not mix other topics.
     3. Ensure the technical questions are highly unique, unconventional, and different every time. Do NOT repeat standard generic questions. Probe deep technical insights.
     
     Return the questions as a JSON array of strings.
@@ -224,7 +233,7 @@ def generate_interview_questions(role, topic, difficulty, num_questions=5):
         print("Activating dynamic local curated fallback engine...")
         
         # Instantly generate high-quality fallback questions matching the user's role and topic!
-        fallback_list = get_fallback_questions(role, topic)
+        fallback_list = get_fallback_questions(role, topic, batch_size=batch_size)
         return json.dumps(fallback_list)
 
 def get_feedback(question, answer):
@@ -554,12 +563,23 @@ def get_assistant_response(chat_history):
             return "Hey there! I am MockMate Companion. The Gemini API is currently hitting high traffic limits, but you should definitely explore the **Coding Round** to practice your algorithms or upload a PDF to the **Resume Analyzer**!"
         return f"Hey! I had trouble reaching my neural core: {err_msg}. You can easily navigate all features using the sidebar on the left!"
 
-def generate_custom_coding_problem(difficulty):
+def generate_custom_coding_problem(difficulty, topic=None, solved_problems=None, batch_size=15):
+    if solved_problems is None:
+        solved_problems = []
+        
+    solved_str = ""
+    if solved_problems:
+        solved_list_str = "\n".join([f"- {p}" for p in solved_problems[:15]])
+        solved_str = f"\nCRITICAL: DO NOT GENERATE ANY OF THE FOLLOWING PROBLEMS:\n{solved_list_str}\n"
+
+    topic_str = f"focusing strictly on the topic: {topic}" if topic else "covering random advanced topics"
+
     prompt = f"""
-    You are an expert algorithmic interviewer. Generate a completely unique, highly professional LeetCode-style coding problem with difficulty: {difficulty}.
-    Do NOT repeat classic problems like Two Sum, Reverse Linked List, or standard textbook examples. Design a creative scenario or technical problem that assesses algorithmic thinking.
+    You are an expert algorithmic interviewer. Generate {batch_size} completely unique, highly professional LeetCode-style coding problems with difficulty: {difficulty}, {topic_str}.
+    Do NOT repeat classic problems like Two Sum, Reverse Linked List, or standard textbook examples. Design creative scenarios or technical problems that assess algorithmic thinking.
+    {solved_str}
     
-    Format the response as JSON with these exact keys:
+    Format the response as a JSON ARRAY of {batch_size} objects. Each object must have these exact keys:
     - title: unique problem name (string)
     - difficulty: "{difficulty}" (string)
     - description: clear, professional problem description with a creative scenario (string)
@@ -597,7 +617,7 @@ def generate_custom_coding_problem(difficulty):
                 return call_github_fallback(prompt)
             except:
                 pass
-        return json.dumps({
+        fallback_obj = {
             "title": f"Custom {difficulty} Challenge",
             "difficulty": difficulty,
             "description": "Design a function that receives a list of integers and returns the second largest number. If the list has fewer than 2 elements, return -1.",
@@ -610,27 +630,29 @@ def generate_custom_coding_problem(difficulty):
                 "javascript": "function findSecondLargest(nums) {\n  // Your solution here\n  return -1;\n}",
                 "python": "def find_second_largest(nums):\n    # Your solution here\n    return -1"
             }
-        })
+        }
+        return json.dumps([fallback_obj] * batch_size)
 
-def generate_custom_quiz(topic, category, solved_questions=None):
+def generate_custom_quiz(topic, category, solved_questions=None, batch_size=25):
     if solved_questions is None:
         solved_questions = []
         
     solved_str = ""
     if solved_questions:
-        solved_list_str = "\n".join([f"- {q}" for q in solved_questions[:10]]) # limit to last 10 to avoid token bloat
+        solved_list_str = "\n".join([f"- {q}" for q in solved_questions[:20]]) # limit to last 20
         solved_str = f"\nCRITICAL: DO NOT GENERATE ANY OF THE FOLLOWING QUESTIONS:\n{solved_list_str}\n"
 
     prompt = f"""
     You are a professional aptitude exam writer for high-end placements. 
-    Generate 5 highly realistic, unique, and challenging multiple-choice questions for the following category and topic:
+    Generate {batch_size} highly realistic, unique, and challenging multiple-choice questions for the following category and topic:
     Category: {category}
     Topic: {topic}
     {solved_str}
     
-    Ensure the questions contain actual numeric/logical/verbal challenges related to this topic (e.g., word problems, seating plans, synonyms, coding logic).
+    Ensure the questions contain actual numeric/logical/verbal challenges strictly related to this topic (e.g., word problems, seating plans, synonyms, coding logic).
+    Do not mix other topics.
     
-    Format the response as a JSON array of 5 question objects, where each object has these exact keys:
+    Format the response as a JSON array of {batch_size} question objects, where each object has these exact keys:
     - question: string (the problem text)
     - options: array of exactly 4 strings (logical options, distinct and realistic)
     - answer: integer (0-indexed index of the correct option in the options array, i.e., 0, 1, 2, or 3)
@@ -676,7 +698,7 @@ def generate_custom_quiz(topic, category, solved_questions=None):
         
         # Determine fallback engine based on category
         attempts = 0
-        while len(questions) < 5 and attempts < 50:
+        while len(questions) < batch_size and attempts < batch_size * 10:
             attempts += 1
             q_obj = None
             if "verbal" in cat_lower or "synonym" in top_lower or "sentence" in top_lower:
@@ -955,15 +977,24 @@ def evaluate_gd_session(topic, chat_history):
             "advice": "Next time, try to explicitly refer to another peer's point (e.g. 'I agree with Sarah's point about economics, but...') to score higher on active listening."
         })
 
-def generate_random_gd_topic(category):
+def generate_random_gd_topic(category, solved_topics=None, batch_size=20):
+    if solved_topics is None:
+        solved_topics = []
+        
+    solved_str = ""
+    if solved_topics:
+        solved_list_str = "\n".join([f"- {t}" for t in solved_topics[:20]])
+        solved_str = f"\nCRITICAL: DO NOT GENERATE ANY OF THE FOLLOWING TOPICS:\n{solved_list_str}\n"
+
     prompt = f"""
-    Generate a completely unique, highly relevant, and engaging Group Discussion (GD) topic for campus placement under the category: "{category}".
-    The topic should be highly argumentative and debatable, suitable for generating distinct opinions.
+    Generate {batch_size} completely unique, highly relevant, and engaging Group Discussion (GD) topics for campus placement under the category: "{category}".
+    The topics should be highly argumentative and debatable, suitable for generating distinct opinions.
+    {solved_str}
     
-    Return the response ONLY as a JSON object with these exact keys:
+    Return the response ONLY as a JSON ARRAY of {batch_size} objects with these exact keys:
     - topic: a clear, concise title of the GD topic (string)
     - description: a 1-2 sentence background context explaining why this topic is controversial or important (string)
-    - category: the input category (string)
+    - category: "{category}" (string)
     """
     
     if USE_GITHUB_MODELS and GITHUB_TOKEN:
@@ -1004,5 +1035,11 @@ def generate_random_gd_topic(category):
             ]
         }
         fallback_list = fallbacks.get(category, fallbacks["Technology"])
-        return json.dumps(random.choice(fallback_list))
+        
+        # Ensure we return batch_size items (repeat if necessary for fallback)
+        res_list = []
+        while len(res_list) < batch_size:
+            res_list.append(random.choice(fallback_list))
+            
+        return json.dumps(res_list)
 

@@ -23,6 +23,7 @@ import {
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
+import { CacheManager } from '../utils/cacheManager';
 
 const Interview = () => {
   const navigate = useNavigate();
@@ -46,11 +47,41 @@ const Interview = () => {
       return;
     }
     setLoading(true);
+
+    const isHR = config.role.toLowerCase().includes('hr') || config.topic.toLowerCase().includes('hr') || config.topic.toLowerCase().includes('behavior');
+    const defaultBatchSize = isHR ? 20 : 15;
+    
+    // 1. Check Cache
+    const cachedQs = CacheManager.getCache('interview', config.topic);
+    if (cachedQs && cachedQs.length >= 5) {
+      console.log(`[DEBUG] Cache HIT for Interview (${config.topic}). Popping 5 questions.`);
+      const currentQs = cachedQs.slice(0, 5);
+      const remainingQs = cachedQs.slice(5);
+      CacheManager.setCache('interview', config.topic, remainingQs);
+      setQuestions(currentQs);
+      setStep('interview');
+      setTimer(0);
+      setLoading(false);
+      toast.success('Lab Environment Initialized from Cache. Good luck!');
+      return;
+    }
+
     try {
-      // In unified mode, use relative paths
-      const res = await axios.post('/api/interview/generate', config);
-      if (res.data.questions && res.data.questions.length > 0) {
-        setQuestions(res.data.questions);
+      const solved = CacheManager.getSolved('interview', config.topic);
+      const batchSize = CacheManager.getBatchSize('interview', defaultBatchSize);
+      
+      const startTime = Date.now();
+      const res = await axios.post('/api/interview/generate', { ...config, solved_questions: solved, batch_size: batchSize });
+      const elapsedMs = Date.now() - startTime;
+      
+      CacheManager.adjustBatchSize('interview', defaultBatchSize, elapsedMs);
+
+      if (res.data.questions && res.data.questions.length >= 5) {
+        const fetchedQs = res.data.questions;
+        const currentQs = fetchedQs.slice(0, 5);
+        const remainingQs = fetchedQs.slice(5);
+        CacheManager.setCache('interview', config.topic, remainingQs);
+        setQuestions(currentQs);
         setStep('interview');
         setTimer(0);
         toast.success('Lab Environment Initialized. Good luck!');
@@ -163,6 +194,7 @@ const Interview = () => {
       }
       
       setFeedback({ ...feedback, [currentIdx]: res.data });
+      CacheManager.addSolved('interview', config.topic, questions[currentIdx]);
       
       if (currentIdx < questions.length - 1) {
         setCurrentIdx(prev => prev + 1);
@@ -224,6 +256,7 @@ const Interview = () => {
       };
       
       setFeedback({ ...feedback, [currentIdx]: localFeedback });
+      CacheManager.addSolved('interview', config.topic, questions[currentIdx]);
       toast.success("Structural analysis complete!");
       
       if (currentIdx < questions.length - 1) {
